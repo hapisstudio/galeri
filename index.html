@@ -107,17 +107,42 @@
       background: #5a6268;
     }
 
-    .btn-edit {
-      background: #f8f9fa;
+    .btn-action-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-view-full {
+      flex: 1;
+      background: #e8f0fe;
       color: #1a73e8;
       border: 1px solid #1a73e8;
-      padding: 6px 14px;
+      padding: 7px 10px;
       font-size: 13px;
-      margin-top: 10px;
-      width: 100%;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-view-full:hover {
+      background: #d2e3fc;
+    }
+
+    .btn-edit {
+      flex: 1;
+      background: #f8f9fa;
+      color: #495057;
+      border: 1px solid #ced4da;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
     }
     .btn-edit:hover {
-      background: #e8f0fe;
+      background: #e9ecef;
     }
 
     .status-msg {
@@ -170,6 +195,7 @@
       height: 220px;
       object-fit: cover;
       scroll-snap-align: start;
+      cursor: zoom-in;
     }
 
     .gallery-content {
@@ -215,7 +241,7 @@
     .modal-backdrop {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(0, 0, 0, 0.6);
       display: none;
       align-items: center;
       justify-content: center;
@@ -245,6 +271,57 @@
       justify-content: flex-end;
       gap: 10px;
       margin-top: 16px;
+    }
+
+    /* Lightbox Modal (Gambar Penuh) */
+    .lightbox-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.88);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 2000;
+    }
+
+    .lightbox-modal.active {
+      display: flex;
+    }
+
+    .lightbox-content {
+      max-width: 90vw;
+      max-height: 80vh;
+      border-radius: 8px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+      object-fit: contain;
+    }
+
+    .lightbox-title {
+      color: #fff;
+      margin-top: 14px;
+      font-size: 16px;
+      font-weight: 500;
+      text-align: center;
+      max-width: 80vw;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 25px;
+      color: #fff;
+      font-size: 32px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      line-height: 1;
+      padding: 0 8px;
+    }
+    .lightbox-close:hover {
+      color: #ced4da;
+      background: none;
     }
   </style>
 </head>
@@ -323,8 +400,14 @@
   </div>
 </div>
 
+<!-- Modal Lightbox (Lihat Gambar Penuh) -->
+<div class="lightbox-modal" id="lightboxModal" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox(event)">&times;</button>
+  <img id="lightboxImage" class="lightbox-content" src="" alt="Gambar Penuh">
+  <div id="lightboxTitle" class="lightbox-title"></div>
+</div>
+
 <script>
-  // URL Web App GAS Anda yang sudah aktif
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-PqBx-7aXGUgQpLcNvmZxhxwcWAWnKcOKvvMYDutAKleFoXdgIqWTydk4vYZQWW4jjg/exec";
 
   let photosData = [];
@@ -364,9 +447,14 @@
       card.className = "gallery-item";
 
       const urls = item.imageUrls || [];
+      const safeTitle = escapeHtml(item.judul);
+
+      // Gambar dapat langsung diklik untuk full screen
       const imagesHtml = urls.map((url, idx) => 
-        `<img src="${url}" alt="${escapeHtml(item.judul)} - ${idx + 1}" loading="lazy">`
+        `<img src="${url}" alt="${safeTitle} - ${idx + 1}" loading="lazy" title="Klik untuk memperbesar" onclick="openLightbox('${url}', '${safeTitle} (${idx + 1}/${urls.length})')">`
       ).join("");
+
+      const firstUrl = urls.length > 0 ? urls[0] : "";
 
       card.innerHTML = `
         <div class="media-scroll" title="Geser ke samping jika foto lebih dari 1">
@@ -374,18 +462,49 @@
         </div>
         <div class="gallery-content">
           <div>
-            <span class="photo-count-badge">${urls.length} Foto (Geser untuk melihat)</span>
-            <h3>${escapeHtml(item.judul)}</h3>
+            <span class="photo-count-badge">${urls.length} Foto (Geser untuk memilih)</span>
+            <h3>${safeTitle}</h3>
             <p>${escapeHtml(item.deskripsi)}</p>
           </div>
-          <button class="btn-edit" onclick="openEditModal('${item.id}')">Edit Katalog / Upload Ulang</button>
+          <div class="btn-action-group">
+            ${firstUrl ? `<button class="btn-view-full" onclick="openLightbox('${firstUrl}', '${safeTitle}')">Lihat Penuh</button>` : ''}
+            <button class="btn-edit" onclick="openEditModal('${item.id}')">Edit</button>
+          </div>
         </div>
       `;
       grid.appendChild(card);
     });
   }
 
-  // 3. Pencarian Parsial (Case-insensitive pada Judul & Deskripsi)
+  // 3. Kontrol Lightbox (Pratinjau Gambar Penuh)
+  function openLightbox(imageUrl, title) {
+    const modal = document.getElementById("lightboxModal");
+    const img = document.getElementById("lightboxImage");
+    const caption = document.getElementById("lightboxTitle");
+
+    img.src = imageUrl;
+    caption.textContent = title || "";
+    modal.classList.add("active");
+  }
+
+  function closeLightbox(e) {
+    // Tutup hanya jika area luar gambar atau tombol close yang diklik
+    if (e.target.id === "lightboxModal" || e.target.classList.contains("lightbox-close")) {
+      const modal = document.getElementById("lightboxModal");
+      modal.classList.remove("active");
+      document.getElementById("lightboxImage").src = "";
+    }
+  }
+
+  // Tutup Lightbox saat menekan tombol Escape di keyboard
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+      document.getElementById("lightboxModal").classList.remove("active");
+      closeEditModal();
+    }
+  });
+
+  // 4. Pencarian Parsial
   document.getElementById("searchInput").addEventListener("input", function(e) {
     const query = e.target.value.toLowerCase().trim();
     const filtered = photosData.filter(item => {
@@ -396,7 +515,7 @@
     renderGallery(filtered);
   });
 
-  // 4. Kompresi Gambar Otomatis (> 5 MB) Menggunakan Canvas
+  // 5. Kompresi Gambar (> 5 MB) Menggunakan Canvas
   async function compressImageIfNeeded(file) {
     const MAX_SIZE = 5 * 1024 * 1024;
     if (file.size <= MAX_SIZE) return file;
@@ -450,7 +569,7 @@
     });
   }
 
-  // 5. Ubah File ke Base64
+  // 6. Ubah File ke Base64
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -460,7 +579,7 @@
     });
   }
 
-  // 6. Pemrosesan Sekelompok File (Cek Kompresi + Konversi Base64)
+  // 7. Siapkan Payload File
   async function prepareFilesPayload(fileList, statusElement) {
     const preparedFiles = [];
     for (let i = 0; i < fileList.length; i++) {
@@ -480,7 +599,7 @@
     return preparedFiles;
   }
 
-  // 7. Handle Submit Upload Form (Create Baru)
+  // 8. Handle Submit Form Upload
   document.getElementById("uploadForm").addEventListener("submit", async function(e) {
     e.preventDefault();
     const btn = document.getElementById("btnUpload");
@@ -491,7 +610,6 @@
 
     if (files.length === 0) return;
 
-    // Cek judul duplikat lokal di frontend terlebih dahulu
     const isDuplicate = photosData.some(item => (item.judul || "").toLowerCase() === judul.toLowerCase());
     if (isDuplicate) {
       statusMsg.style.color = "#dc3545";
@@ -535,7 +653,7 @@
     }
   });
 
-  // 8. Modal Edit Logic
+  // 9. Modal Edit Form
   function openEditModal(id) {
     const item = photosData.find(p => p.id === id);
     if (!item) return;
@@ -553,7 +671,6 @@
     document.getElementById("editModal").classList.remove("active");
   }
 
-  // 9. Handle Submit Form Edit
   document.getElementById("editForm").addEventListener("submit", async function(e) {
     e.preventDefault();
     const btn = document.getElementById("btnSaveEdit");
@@ -563,7 +680,6 @@
     const deskripsi = document.getElementById("editDeskripsi").value;
     const files = document.getElementById("editFiles").files;
 
-    // Cek duplikat judul lokal (kecuali dengan dirinya sendiri)
     const isDuplicate = photosData.some(item => item.id !== id && (item.judul || "").toLowerCase() === judul.toLowerCase());
     if (isDuplicate) {
       statusMsg.style.color = "#dc3545";
@@ -615,7 +731,7 @@
     return div.innerHTML;
   }
 
-  // Inisialisasi awal
+  // Load katalog saat halaman dimuat
   fetchPhotos();
 </script>
 </body>
