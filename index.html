@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Galeri Foto Cloud</title>
+  <title>Katalog & Galeri Foto Cloud</title>
   <style>
     * {
       box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       margin: 0;
       padding: 0;
     }
@@ -19,7 +19,7 @@
     }
 
     .container {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 0 auto;
     }
 
@@ -34,12 +34,7 @@
       margin-bottom: 6px;
     }
 
-    header p {
-      color: #6c757d;
-      font-size: 15px;
-    }
-
-    /* Form Upload Card */
+    /* Card Upload */
     .card {
       background: #ffffff;
       padding: 24px;
@@ -105,13 +100,33 @@
       cursor: not-allowed;
     }
 
+    .btn-secondary {
+      background: #6c757d;
+    }
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-edit {
+      background: #f8f9fa;
+      color: #1a73e8;
+      border: 1px solid #1a73e8;
+      padding: 6px 14px;
+      font-size: 13px;
+      margin-top: 10px;
+      width: 100%;
+    }
+    .btn-edit:hover {
+      background: #e8f0fe;
+    }
+
     .status-msg {
       margin-top: 12px;
       font-size: 14px;
       font-weight: 500;
     }
 
-    /* Search Bar */
+    /* Search Box */
     .search-container {
       margin-bottom: 24px;
     }
@@ -122,18 +137,12 @@
       font-size: 15px;
       border-radius: 8px;
       border: 1px solid #ced4da;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-    }
-
-    .search-box:focus {
-      outline: none;
-      border-color: #1a73e8;
     }
 
     /* Grid Gallery */
     .gallery-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 20px;
     }
 
@@ -146,21 +155,33 @@
       flex-direction: column;
     }
 
-    .gallery-item img {
+    /* Thumbnail Slideshow Container */
+    .media-scroll {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      background: #212529;
+      height: 220px;
+    }
+
+    .media-scroll img {
+      flex: 0 0 100%;
       width: 100%;
-      height: 200px;
+      height: 220px;
       object-fit: cover;
-      background-color: #e9ecef;
-      display: block;
+      scroll-snap-align: start;
     }
 
     .gallery-content {
       padding: 16px;
       flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .gallery-content h3 {
-      font-size: 17px;
+      font-size: 18px;
       margin-bottom: 6px;
       color: #212529;
     }
@@ -169,6 +190,18 @@
       font-size: 14px;
       color: #6c757d;
       line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    .photo-count-badge {
+      font-size: 11px;
+      background: #e9ecef;
+      color: #495057;
+      padding: 2px 8px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 8px;
+      font-weight: bold;
     }
 
     .empty-state {
@@ -177,60 +210,126 @@
       grid-column: 1 / -1;
       padding: 40px 0;
     }
+
+    /* Modal Styling */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #fff;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .modal-box h3 {
+      margin-bottom: 16px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 16px;
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
   <header>
-    <h1>Galeri Foto Cloud</h1>
-    <p>Penyimpanan foto terintegrasi Google Drive & Spreadsheet</p>
+    <h1>Katalog & Galeri Foto Cloud</h1>
+    <p>Upload multi-foto sekaligus dalam satu katalog judul unik</p>
   </header>
 
-  <!-- Upload Box -->
+  <!-- Upload Form Card -->
   <div class="card">
-    <h2>Upload Foto Baru</h2>
+    <h2>Tambah Katalog Baru</h2>
     <form id="uploadForm">
       <div class="form-group">
-        <label for="judul">Judul Foto</label>
-        <input type="text" id="judul" required placeholder="Contoh: Pemandangan Gunung Bromo">
+        <label for="judul">Judul Katalog (Harus Unik)</label>
+        <input type="text" id="judul" required placeholder="Contoh: Liburan Raja Ampat 2026">
       </div>
       
       <div class="form-group">
         <label for="deskripsi">Deskripsi</label>
-        <textarea id="deskripsi" rows="3" required placeholder="Tambahkan deskripsi atau catatan..."></textarea>
+        <textarea id="deskripsi" rows="3" required placeholder="Keterangan lengkap..."></textarea>
       </div>
 
       <div class="form-group">
-        <label for="fotoFile">File Foto (otomatis dikompres jika > 5 MB)</label>
-        <input type="file" id="fotoFile" accept="image/*" required>
+        <label for="fotoFiles">Pilih Foto (Bisa pilih banyak foto, kompres otomatis jika > 5 MB)</label>
+        <input type="file" id="fotoFiles" accept="image/*" multiple required>
       </div>
 
-      <button type="submit" id="btnUpload">Upload Sekarang</button>
+      <button type="submit" id="btnUpload">Upload Semua Foto</button>
       <div id="uploadStatus" class="status-msg"></div>
     </form>
   </div>
 
-  <!-- Search Input (Pencarian Parsial) -->
+  <!-- Pencarian Parsial -->
   <div class="search-container">
-    <input type="text" id="searchInput" class="search-box" placeholder="Ketik kata kunci untuk mencari judul atau deskripsi...">
+    <input type="text" id="searchInput" class="search-box" placeholder="Cari berdasarkan judul atau deskripsi...">
   </div>
 
-  <!-- Container Grid Galeri -->
+  <!-- Grid Galeri -->
   <div id="galleryGrid" class="gallery-grid">
     <p class="empty-state">Memuat data galeri...</p>
   </div>
 </div>
 
+<!-- Modal Edit Katalog -->
+<div class="modal-backdrop" id="editModal">
+  <div class="modal-box">
+    <h3>Edit Katalog & Upload Ulang Foto</h3>
+    <form id="editForm">
+      <input type="hidden" id="editId">
+      
+      <div class="form-group">
+        <label for="editJudul">Judul</label>
+        <input type="text" id="editJudul" required>
+      </div>
+
+      <div class="form-group">
+        <label for="editDeskripsi">Deskripsi</label>
+        <textarea id="editDeskripsi" rows="3" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="editFiles">Upload Ulang Foto Baru (Opsional, kosongkan jika tetap foto lama)</label>
+        <input type="file" id="editFiles" accept="image/*" multiple>
+      </div>
+
+      <div id="editStatus" class="status-msg"></div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="closeEditModal()">Batal</button>
+        <button type="submit" id="btnSaveEdit">Simpan Perubahan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
-  // =========================================================================
-  // GANTI DENGAN URL HASIL DEPLOY WEB APP DARI GOOGLE APPS SCRIPT
-  // =========================================================================
+  // URL Web App GAS Anda yang sudah aktif
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-PqBx-7aXGUgQpLcNvmZxhxwcWAWnKcOKvvMYDutAKleFoXdgIqWTydk4vYZQWW4jjg/exec";
 
   let photosData = [];
 
-  // 1. Ambil data dari Backend Google Sheets
+  // 1. Ambil Data Galeri
   async function fetchPhotos() {
     const grid = document.getElementById("galleryGrid");
     grid.innerHTML = `<p class="empty-state">Memuat data galeri...</p>`;
@@ -240,85 +339,87 @@
       const result = await res.json();
 
       if (result.status === "success") {
-        // Balik urutan data agar foto terbaru berada di posisi pertama
         photosData = result.data.reverse();
         renderGallery(photosData);
       } else {
-        grid.innerHTML = `<p class="empty-state" style="color: #dc3545;">Gagal memuat: ${result.message}</p>`;
+        grid.innerHTML = `<p class="empty-state" style="color: red;">Gagal: ${result.message}</p>`;
       }
     } catch (err) {
-      grid.innerHTML = `<p class="empty-state" style="color: #dc3545;">Gagal terhubung ke server: ${err.message}</p>`;
+      grid.innerHTML = `<p class="empty-state" style="color: red;">Koneksi error: ${err.message}</p>`;
     }
   }
 
-  // 2. Render foto ke format grid
+  // 2. Render Card Katalog ke Grid
   function renderGallery(items) {
     const grid = document.getElementById("galleryGrid");
     grid.innerHTML = "";
 
     if (items.length === 0) {
-      grid.innerHTML = `<p class="empty-state">Tidak ada foto yang cocok ditemukan.</p>`;
+      grid.innerHTML = `<p class="empty-state">Tidak ada foto atau katalog yang ditemukan.</p>`;
       return;
     }
 
     items.forEach(item => {
       const card = document.createElement("div");
       card.className = "gallery-item";
+
+      const urls = item.imageUrls || [];
+      const imagesHtml = urls.map((url, idx) => 
+        `<img src="${url}" alt="${escapeHtml(item.judul)} - ${idx + 1}" loading="lazy">`
+      ).join("");
+
       card.innerHTML = `
-        <img src="${item.imageUrl}" alt="${escapeHtml(item.judul)}" loading="lazy">
+        <div class="media-scroll" title="Geser ke samping jika foto lebih dari 1">
+          ${imagesHtml || '<div style="color:white;display:flex;align-items:center;justify-content:center;width:100%;">Tidak ada foto</div>'}
+        </div>
         <div class="gallery-content">
-          <h3>${escapeHtml(item.judul)}</h3>
-          <p>${escapeHtml(item.deskripsi)}</p>
+          <div>
+            <span class="photo-count-badge">${urls.length} Foto (Geser untuk melihat)</span>
+            <h3>${escapeHtml(item.judul)}</h3>
+            <p>${escapeHtml(item.deskripsi)}</p>
+          </div>
+          <button class="btn-edit" onclick="openEditModal('${item.id}')">Edit Katalog / Upload Ulang</button>
         </div>
       `;
       grid.appendChild(card);
     });
   }
 
-  // 3. Fitur Pencarian Parsial (Case-insensitive pada Judul & Deskripsi)
+  // 3. Pencarian Parsial (Case-insensitive pada Judul & Deskripsi)
   document.getElementById("searchInput").addEventListener("input", function(e) {
     const query = e.target.value.toLowerCase().trim();
-
     const filtered = photosData.filter(item => {
       const matchJudul = (item.judul || "").toLowerCase().includes(query);
       const matchDeskripsi = (item.deskripsi || "").toLowerCase().includes(query);
       return matchJudul || matchDeskripsi;
     });
-
     renderGallery(filtered);
   });
 
-  // 4. Fungsi Kompresi Otomatis Menggunakan HTML5 Canvas (jika file > 5 MB)
+  // 4. Kompresi Gambar Otomatis (> 5 MB) Menggunakan Canvas
   async function compressImageIfNeeded(file) {
-    const MAX_SIZE_BYTES = 5 * 1024 * 1024; // Ambang batas 5 MB
-
-    // Jika ukuran sudah di bawah atau sama dengan 5 MB, lewati kompresi
-    if (file.size <= MAX_SIZE_BYTES) {
-      return file;
-    }
+    const MAX_SIZE = 5 * 1024 * 1024;
+    if (file.size <= MAX_SIZE) return file;
 
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-
       reader.onload = (event) => {
         const img = new Image();
         img.src = event.target.result;
-
         img.onload = () => {
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
+          const MAX_DIM = 1920;
 
-          // Batasi resolusi maksimal (misal 1920px untuk sisi terpanjang)
-          const MAX_DIMENSION = 1920;
-          if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          if (width > MAX_DIM || height > MAX_DIM) {
             if (width > height) {
-              height = Math.round((height * MAX_DIMENSION) / width);
-              width = MAX_DIMENSION;
+              height = Math.round((height * MAX_DIM) / width);
+              width = MAX_DIM;
             } else {
-              width = Math.round((width * MAX_DIMENSION) / height);
-              height = MAX_DIMENSION;
+              width = Math.round((width * MAX_DIM) / height);
+              height = MAX_DIM;
             }
           }
 
@@ -327,131 +428,195 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Lakukan kompresi kualitas bertahap sampai di bawah 5 MB
           let quality = 0.8;
-
-          function processBlob(q) {
+          function loopCompress(q) {
             canvas.toBlob((blob) => {
-              if (!blob) {
-                reject(new Error("Gagal mengompres gambar pada canvas."));
-                return;
-              }
-
-              // Jika masih di atas 5 MB dan kualitas masih di atas 0.3
-              if (blob.size > MAX_SIZE_BYTES && q > 0.3) {
-                processBlob(q - 0.15);
+              if (!blob) return reject(new Error("Gagal kompresi."));
+              if (blob.size > MAX_SIZE && q > 0.3) {
+                loopCompress(q - 0.15);
               } else {
-                // Bungkus blob menjadi objek File
-                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
                   type: "image/jpeg",
                   lastModified: Date.now()
-                });
-                resolve(compressedFile);
+                }));
               }
             }, 'image/jpeg', q);
           }
-
-          processBlob(quality);
+          loopCompress(quality);
         };
-
-        img.onerror = () => reject(new Error("Gagal membaca objek gambar."));
+        img.onerror = () => reject(new Error("Gagal membaca file gambar."));
       };
-
       reader.onerror = () => reject(new Error("Gagal memuat file gambar."));
     });
   }
 
-  // 5. Mengubah File Object ke Plain Base64 String
+  // 5. Ubah File ke Base64
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => {
-        // Ambil string data setelah tanda koma (membuang "data:image/...;base64,")
-        const base64Clean = reader.result.split(',')[1];
-        resolve(base64Clean);
-      };
-      reader.onerror = error => reject(error);
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
       reader.readAsDataURL(file);
     });
   }
 
-  // 6. Handle Form Submit
+  // 6. Pemrosesan Sekelompok File (Cek Kompresi + Konversi Base64)
+  async function prepareFilesPayload(fileList, statusElement) {
+    const preparedFiles = [];
+    for (let i = 0; i < fileList.length; i++) {
+      let file = fileList[i];
+      if (file.size > 5 * 1024 * 1024) {
+        statusElement.textContent = `Mengompres foto ke-${i + 1} dari ${fileList.length}...`;
+        file = await compressImageIfNeeded(file);
+      }
+      statusElement.textContent = `Memproses foto ke-${i + 1} dari ${fileList.length}...`;
+      const base64Str = await fileToBase64(file);
+      preparedFiles.push({
+        fileName: file.name,
+        mimeType: file.type,
+        base64File: base64Str
+      });
+    }
+    return preparedFiles;
+  }
+
+  // 7. Handle Submit Upload Form (Create Baru)
   document.getElementById("uploadForm").addEventListener("submit", async function(e) {
     e.preventDefault();
-
     const btn = document.getElementById("btnUpload");
     const statusMsg = document.getElementById("uploadStatus");
-    const fileInput = document.getElementById("fotoFile");
-    let file = fileInput.files[0];
+    const judul = document.getElementById("judul").value.trim();
+    const deskripsi = document.getElementById("deskripsi").value;
+    const files = document.getElementById("fotoFiles").files;
 
-    if (!file) return;
+    if (files.length === 0) return;
+
+    // Cek judul duplikat lokal di frontend terlebih dahulu
+    const isDuplicate = photosData.some(item => (item.judul || "").toLowerCase() === judul.toLowerCase());
+    if (isDuplicate) {
+      statusMsg.style.color = "#dc3545";
+      statusMsg.textContent = `Judul "${judul}" sudah ada. Silakan gunakan judul lain.`;
+      return;
+    }
 
     btn.disabled = true;
-    btn.textContent = "Memproses...";
+    btn.textContent = "Mengunggah...";
     statusMsg.style.color = "#495057";
 
     try {
-      // Periksa apakah ukuran file lebih dari 5 MB
-      const FIVE_MB = 5 * 1024 * 1024;
-      if (file.size > FIVE_MB) {
-        const sizeOriginalMB = (file.size / (1024 * 1024)).toFixed(2);
-        statusMsg.textContent = `Ukuran awal ${sizeOriginalMB} MB (> 5 MB). Sedang mengompres gambar...`;
-        
-        file = await compressImageIfNeeded(file);
-        
-        const sizeCompressedMB = (file.size / (1024 * 1024)).toFixed(2);
-        statusMsg.textContent = `Berhasil dikompres menjadi ${sizeCompressedMB} MB. Mengunggah ke Google Drive...`;
-      } else {
-        statusMsg.textContent = "Mengunggah gambar ke Google Drive...";
-      }
+      const filePayloads = await prepareFilesPayload(files, statusMsg);
 
-      // Konversi ke format Base64
-      const base64File = await fileToBase64(file);
-
-      // Susun data pengiriman
-      const payload = {
-        judul: document.getElementById("judul").value,
-        deskripsi: document.getElementById("deskripsi").value,
-        fileName: file.name,
-        mimeType: file.type,
-        base64File: base64File
-      };
-
-      // Kirim via POST ke Apps Script
+      statusMsg.textContent = "Mengunggah ke Cloud Storage...";
       const response = await fetch(SCRIPT_URL, {
         method: "POST",
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          action: "create",
+          judul: judul,
+          deskripsi: deskripsi,
+          files: filePayloads
+        })
       });
 
-      const resData = await response.json();
-
-      if (resData.status === "success") {
-        statusMsg.style.color = "#28a745";
-        statusMsg.textContent = "Foto berhasil diunggah!";
+      const resJson = await response.json();
+      if (resJson.status === "success") {
+        statusMsg.style.color = "green";
+        statusMsg.textContent = "Berhasil menambahkan katalog baru!";
         document.getElementById("uploadForm").reset();
-        fetchPhotos(); // Perbarui tampilan galeri
+        fetchPhotos();
       } else {
-        throw new Error(resData.message);
+        throw new Error(resJson.message);
       }
     } catch (err) {
       statusMsg.style.color = "#dc3545";
-      statusMsg.textContent = "Terjadi kesalahan: " + err.message;
+      statusMsg.textContent = "Gagal: " + err.message;
     } finally {
       btn.disabled = false;
-      btn.textContent = "Upload Sekarang";
+      btn.textContent = "Upload Semua Foto";
     }
   });
 
-  // Utility anti XSS
+  // 8. Modal Edit Logic
+  function openEditModal(id) {
+    const item = photosData.find(p => p.id === id);
+    if (!item) return;
+
+    document.getElementById("editId").value = item.id;
+    document.getElementById("editJudul").value = item.judul;
+    document.getElementById("editDeskripsi").value = item.deskripsi;
+    document.getElementById("editFiles").value = "";
+    document.getElementById("editStatus").textContent = "";
+
+    document.getElementById("editModal").classList.add("active");
+  }
+
+  function closeEditModal() {
+    document.getElementById("editModal").classList.remove("active");
+  }
+
+  // 9. Handle Submit Form Edit
+  document.getElementById("editForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById("btnSaveEdit");
+    const statusMsg = document.getElementById("editStatus");
+    const id = document.getElementById("editId").value;
+    const judul = document.getElementById("editJudul").value.trim();
+    const deskripsi = document.getElementById("editDeskripsi").value;
+    const files = document.getElementById("editFiles").files;
+
+    // Cek duplikat judul lokal (kecuali dengan dirinya sendiri)
+    const isDuplicate = photosData.some(item => item.id !== id && (item.judul || "").toLowerCase() === judul.toLowerCase());
+    if (isDuplicate) {
+      statusMsg.style.color = "#dc3545";
+      statusMsg.textContent = `Judul "${judul}" sudah dipakai katalog lain.`;
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Menyimpan...";
+    statusMsg.style.color = "#495057";
+
+    try {
+      let filePayloads = [];
+      if (files.length > 0) {
+        filePayloads = await prepareFilesPayload(files, statusMsg);
+      }
+
+      statusMsg.textContent = "Menyimpan perubahan ke server...";
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "update",
+          id: id,
+          judul: judul,
+          deskripsi: deskripsi,
+          files: filePayloads
+        })
+      });
+
+      const resJson = await response.json();
+      if (resJson.status === "success") {
+        closeEditModal();
+        fetchPhotos();
+      } else {
+        throw new Error(resJson.message);
+      }
+    } catch (err) {
+      statusMsg.style.color = "#dc3545";
+      statusMsg.textContent = "Gagal memperbarui: " + err.message;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Simpan Perubahan";
+    }
+  });
+
   function escapeHtml(text) {
     const div = document.createElement('div');
     div.innerText = text || '';
     return div.innerHTML;
   }
 
-  // Load galeri pertama kali
+  // Inisialisasi awal
   fetchPhotos();
 </script>
-
 </body>
 </html>
