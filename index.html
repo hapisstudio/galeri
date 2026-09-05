@@ -1,738 +1,932 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark scroll-smooth select-none">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Katalog & Galeri Foto Cloud</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0b0d12" />
+  <title>Cloud Photo Gallery</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Motion (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/motion@11.11.13/dist/motion.min.js"></script>
+
+  <!-- Lucide Icons (CDN) -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['"Space Grotesk"', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+            mono: ['Geist', 'monospace'],
+          },
+          colors: {
+            ink: 'var(--color-bg)',
+            panel: 'var(--color-panel)',
+            card: 'var(--color-card)',
+            line: 'var(--color-line)',
+            soft: 'var(--color-soft)',
+            pink: '#dd7bbb',
+            gold: '#d79f1e',
+            leaf: '#5a922c',
+            sea: '#4c7894',
+          },
+        },
+      },
+    };
+  </script>
+
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 0;
+    :root {
+      color-scheme: dark;
+      -webkit-tap-highlight-color: transparent;
+      --color-bg: #0b0d12;
+      --color-panel: #11141b;
+      --color-card: #161a24;
+      --color-line: #232836;
+      --color-soft: #9aa3b5;
+      --color-text-main: #e8ebf2;
+      --color-text-title: #ffffff;
+      --grid-line: #232836;
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-reflection: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.02) 60%, rgba(255, 255, 255, 0.15) 100%);
+      --glass-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+      --header-bg: rgba(11, 13, 18, 0.75);
+    }
+
+    html.light {
+      color-scheme: light;
+      --color-bg: #f4f6fb;
+      --color-panel: #ffffff;
+      --color-card: #f8fafc;
+      --color-line: #e2e8f0;
+      --color-soft: #64748b;
+      --color-text-main: #1e293b;
+      --color-text-title: #0f172a;
+      --grid-line: rgba(148, 163, 184, 0.28);
+      --glass-bg: rgba(255, 255, 255, 0.70);
+      --glass-reflection: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.45) 40%, rgba(226, 232, 240, 0.2) 70%, rgba(255, 255, 255, 0.8) 100%);
+      --glass-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+      --header-bg: rgba(244, 246, 251, 0.85);
     }
 
     body {
-      background-color: #f1f3f5;
-      padding: 24px 16px;
-      color: #212529;
+      background: var(--color-bg);
+      color: var(--color-text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      overflow-x: hidden;
+      overscroll-behavior-y: contain;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    ::selection { background: #dd7bbb; color: #0b0d12; }
+
+    /* Mesh Grid Background */
+    .hero-grid {
+      background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 48px 48px;
+      -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 15%, #000 30%, transparent 80%);
+      mask-image: radial-gradient(ellipse 90% 60% at 50% 15%, #000 30%, transparent 80%);
+      transition: background-image 0.3s ease;
     }
 
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-
-    header h1 {
-      color: #1a73e8;
-      font-size: 28px;
-      margin-bottom: 6px;
-    }
-
-    /* Card Upload */
-    .card {
-      background: #ffffff;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      margin-bottom: 24px;
-    }
-
-    .card h2 {
-      font-size: 18px;
-      margin-bottom: 16px;
-      border-bottom: 2px solid #f1f3f5;
-      padding-bottom: 8px;
-    }
-
-    .form-group {
-      margin-bottom: 14px;
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      font-size: 13px;
-      margin-bottom: 6px;
-      color: #495057;
-    }
-
-    input[type="text"],
-    textarea,
-    input[type="file"] {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ced4da;
-      border-radius: 6px;
-      font-size: 14px;
-      background: #fff;
-    }
-
-    input[type="text"]:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #1a73e8;
-    }
-
-    button {
-      background: #1a73e8;
-      color: #ffffff;
-      border: none;
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 600;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    button:hover {
-      background: #1557b0;
-    }
-
-    button:disabled {
-      background: #adb5bd;
-      cursor: not-allowed;
-    }
-
-    .btn-secondary {
-      background: #6c757d;
-    }
-    .btn-secondary:hover {
-      background: #5a6268;
-    }
-
-    .btn-action-group {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .btn-view-full {
-      flex: 1;
-      background: #e8f0fe;
-      color: #1a73e8;
-      border: 1px solid #1a73e8;
-      padding: 7px 10px;
-      font-size: 13px;
-      font-weight: 600;
-      border-radius: 6px;
-      cursor: pointer;
-      text-align: center;
-    }
-    .btn-view-full:hover {
-      background: #d2e3fc;
-    }
-
-    .btn-edit {
-      flex: 1;
-      background: #f8f9fa;
-      color: #495057;
-      border: 1px solid #ced4da;
-      padding: 7px 10px;
-      font-size: 13px;
-      font-weight: 600;
-      border-radius: 6px;
-      cursor: pointer;
-      text-align: center;
-    }
-    .btn-edit:hover {
-      background: #e9ecef;
-    }
-
-    .status-msg {
-      margin-top: 12px;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    /* Search Box */
-    .search-container {
-      margin-bottom: 24px;
-    }
-
-    .search-box {
-      width: 100%;
-      padding: 12px 16px;
-      font-size: 15px;
-      border-radius: 8px;
-      border: 1px solid #ced4da;
-    }
-
-    /* Grid Gallery */
-    .gallery-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-    }
-
-    .gallery-item {
-      background: #ffffff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Thumbnail Slideshow Container */
-    .media-scroll {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      background: #212529;
-      height: 220px;
-    }
-
-    .media-scroll img {
-      flex: 0 0 100%;
-      width: 100%;
-      height: 220px;
-      object-fit: cover;
-      scroll-snap-align: start;
-      cursor: zoom-in;
-    }
-
-    .gallery-content {
-      padding: 16px;
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .gallery-content h3 {
-      font-size: 18px;
-      margin-bottom: 6px;
-      color: #212529;
-    }
-
-    .gallery-content p {
-      font-size: 14px;
-      color: #6c757d;
-      line-height: 1.45;
-      margin-bottom: 12px;
-    }
-
-    .photo-count-badge {
-      font-size: 11px;
-      background: #e9ecef;
-      color: #495057;
-      padding: 2px 8px;
-      border-radius: 12px;
-      display: inline-block;
-      margin-bottom: 8px;
-      font-weight: bold;
-    }
-
-    .empty-state {
-      text-align: center;
-      color: #868e96;
-      grid-column: 1 / -1;
-      padding: 40px 0;
-    }
-
-    /* Modal Styling */
-    .modal-backdrop {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 1000;
-    }
-
-    .modal-backdrop.active {
-      display: flex;
-    }
-
-    .modal-box {
-      background: #fff;
-      border-radius: 12px;
-      max-width: 500px;
-      width: 100%;
-      padding: 24px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-
-    .modal-box h3 {
-      margin-bottom: 16px;
-    }
-
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 16px;
-    }
-
-    /* Lightbox Modal (Gambar Penuh) */
-    .lightbox-modal {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.88);
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      z-index: 2000;
-    }
-
-    .lightbox-modal.active {
-      display: flex;
-    }
-
-    .lightbox-content {
-      max-width: 90vw;
-      max-height: 80vh;
-      border-radius: 8px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-      object-fit: contain;
-    }
-
-    .lightbox-title {
-      color: #fff;
-      margin-top: 14px;
-      font-size: 16px;
-      font-weight: 500;
-      text-align: center;
-      max-width: 80vw;
-    }
-
-    .lightbox-close {
+    /* Glowing Border Effect */
+    .glow-capture { position: relative; }
+    .glowing-effect {
+      pointer-events: none;
       position: absolute;
-      top: 20px;
-      right: 25px;
-      color: #fff;
-      font-size: 32px;
-      cursor: pointer;
-      background: none;
-      border: none;
-      line-height: 1;
-      padding: 0 8px;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 1;
+      transition: opacity .3s;
+      --blur: 0px;
+      --spread: 40;
+      --start: 0;
+      --active: 0;
+      --glowingeffect-border-width: 2px;
+      --repeating-conic-gradient-times: 5;
+      --gradient:
+        radial-gradient(circle, #dd7bbb 10%, #dd7bbb00 20%),
+        radial-gradient(circle at 40% 40%, #d79f1e 5%, #d79f1e00 15%),
+        radial-gradient(circle at 60% 60%, #5a922c 10%, #5a922c00 20%),
+        radial-gradient(circle at 40% 60%, #4c7894 10%, #4c789400 20%),
+        repeating-conic-gradient(
+          from 236.84deg at 50% 50%,
+          #dd7bbb 0%,
+          #d79f1e calc(25% / var(--repeating-conic-gradient-times)),
+          #5a922c calc(50% / var(--repeating-conic-gradient-times)),
+          #4c7894 calc(75% / var(--repeating-conic-gradient-times)),
+          #dd7bbb calc(100% / var(--repeating-conic-gradient-times))
+        );
     }
-    .lightbox-close:hover {
-      color: #ced4da;
-      background: none;
+    .glowing-effect .glow { border-radius: inherit; position: absolute; inset: 0; }
+    .glowing-effect .glow::after {
+      content: "";
+      position: absolute;
+      inset: calc(-1 * var(--glowingeffect-border-width));
+      border-radius: inherit;
+      border: var(--glowingeffect-border-width) solid transparent;
+      background: var(--gradient);
+      background-attachment: fixed;
+      opacity: var(--active);
+      transition: opacity .3s;
+      -webkit-mask-clip: padding-box, border-box;
+      mask-clip: padding-box, border-box;
+      -webkit-mask-composite: source-in;
+      mask-composite: intersect;
+      -webkit-mask-image:
+        linear-gradient(#0000, #0000),
+        conic-gradient(from calc((var(--start) - var(--spread)) * 1deg),
+          #00000000 0deg, #fff, #00000000 calc(var(--spread) * 2deg));
+      mask-image:
+        linear-gradient(#0000, #0000),
+        conic-gradient(from calc((var(--start) - var(--spread)) * 1deg),
+          #00000000 0deg, #fff, #00000000 calc(var(--spread) * 2deg));
+    }
+
+    /* Liquid Glass Effect */
+    .liquid-glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: var(--glass-shadow);
+      position: relative;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .liquid-glass::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: var(--glass-reflection);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .gradient-text {
+      background: linear-gradient(100deg, #dd7bbb 0%, #d79f1e 35%, #5a922c 65%, #4c7894 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* Utilitas Khusus */
+    .tap-press:active {
+      transform: scale(0.97);
+      transition: transform 0.1s ease;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .mode-icon-spin {
+      animation: iconSpin 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes iconSpin {
+      0% { transform: scale(0.6) rotate(-60deg); opacity: 0.3; }
+      50% { transform: scale(1.2) rotate(15deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
     }
   </style>
 </head>
-<body>
 
-<div class="container">
-  <header>
-    <h1>Katalog & Galeri Foto Cloud</h1>
-    <p>Upload multi-foto sekaligus dalam satu katalog judul unik</p>
+<body class="antialiased flex flex-col justify-between text-zinc-100">
+
+  <!-- Background Gradients & Mesh Grid -->
+  <div class="fixed inset-0 hero-grid pointer-events-none z-0"></div>
+  <div class="fixed -top-32 left-1/2 -translate-x-1/2 w-80 h-80 sm:w-[42rem] sm:h-[42rem] rounded-full blur-[110px] opacity-20 pointer-events-none z-0"
+       style="background:conic-gradient(from 90deg,#dd7bbb,#d79f1e,#5a922c,#4c7894,#dd7bbb)"></div>
+
+  <!-- Header Modern -->
+  <header class="sticky top-0 z-40 px-3.5 pt-3 pb-2.5 bg-ink/80 backdrop-blur-xl border-b border-line/60">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <!-- App Brand -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-panel border border-line flex items-center justify-center shadow-inner text-pink">
+          <i data-lucide="image" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h1 class="font-display font-bold text-base tracking-tight leading-none">
+            <span class="gradient-text">Galeri</span><span class="text-soft"> Cloud</span>
+          </h1>
+          <p class="text-[10px] font-mono text-soft leading-none mt-1">Google Drive & Sheets Storage</p>
+        </div>
+      </div>
+
+      <!-- Top Actions -->
+      <div class="flex items-center gap-2">
+        <span id="badgeTotalKatalog" class="px-2.5 py-1 rounded-full bg-white/5 border border-line text-[11px] font-mono text-zinc-300 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-leaf animate-pulse"></span>
+          <span id="labelCounterHeader">0 Katalog</span>
+        </span>
+
+        <!-- Theme Switcher -->
+        <button onclick="toggleTheme()" title="Ganti Mode Terang / Gelap"
+                class="flex items-center justify-center w-8 h-8 rounded-xl bg-black/5 dark:bg-white/5 border border-line text-zinc-600 dark:text-zinc-300 hover:text-pink transition-all tap-press">
+          <i id="themeIcon" data-lucide="moon" class="w-4 h-4 text-pink"></i>
+        </button>
+      </div>
+    </div>
   </header>
 
-  <!-- Upload Form Card -->
-  <div class="card">
-    <h2>Tambah Katalog Baru</h2>
-    <form id="uploadForm">
-      <div class="form-group">
-        <label for="judul">Judul Katalog (Harus Unik)</label>
-        <input type="text" id="judul" required placeholder="Contoh: Liburan Raja Ampat 2026">
-      </div>
-      
-      <div class="form-group">
-        <label for="deskripsi">Deskripsi</label>
-        <textarea id="deskripsi" rows="3" required placeholder="Keterangan lengkap..."></textarea>
-      </div>
+  <!-- Container Konten Utama -->
+  <main class="relative z-10 flex-1 w-full max-w-4xl mx-auto px-4 pt-4 pb-20 space-y-5">
 
-      <div class="form-group">
-        <label for="fotoFiles">Pilih Foto (Bisa pilih banyak foto, kompres otomatis jika > 5 MB)</label>
-        <input type="file" id="fotoFiles" accept="image/*" multiple required>
-      </div>
-
-      <button type="submit" id="btnUpload">Upload Semua Foto</button>
-      <div id="uploadStatus" class="status-msg"></div>
-    </form>
-  </div>
-
-  <!-- Pencarian Parsial -->
-  <div class="search-container">
-    <input type="text" id="searchInput" class="search-box" placeholder="Cari berdasarkan judul atau deskripsi...">
-  </div>
-
-  <!-- Grid Galeri -->
-  <div id="galleryGrid" class="gallery-grid">
-    <p class="empty-state">Memuat data galeri...</p>
-  </div>
-</div>
-
-<!-- Modal Edit Katalog -->
-<div class="modal-backdrop" id="editModal">
-  <div class="modal-box">
-    <h3>Edit Katalog & Upload Ulang Foto</h3>
-    <form id="editForm">
-      <input type="hidden" id="editId">
-      
-      <div class="form-group">
-        <label for="editJudul">Judul</label>
-        <input type="text" id="editJudul" required>
-      </div>
-
-      <div class="form-group">
-        <label for="editDeskripsi">Deskripsi</label>
-        <textarea id="editDeskripsi" rows="3" required></textarea>
-      </div>
-
-      <div class="form-group">
-        <label for="editFiles">Upload Ulang Foto Baru (Opsional, kosongkan jika tetap foto lama)</label>
-        <input type="file" id="editFiles" accept="image/*" multiple>
-      </div>
-
-      <div id="editStatus" class="status-msg"></div>
-
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" onclick="closeEditModal()">Batal</button>
-        <button type="submit" id="btnSaveEdit">Simpan Perubahan</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal Lightbox (Lihat Gambar Penuh) -->
-<div class="lightbox-modal" id="lightboxModal" onclick="closeLightbox(event)">
-  <button class="lightbox-close" onclick="closeLightbox(event)">&times;</button>
-  <img id="lightboxImage" class="lightbox-content" src="" alt="Gambar Penuh">
-  <div id="lightboxTitle" class="lightbox-title"></div>
-</div>
-
-<script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-PqBx-7aXGUgQpLcNvmZxhxwcWAWnKcOKvvMYDutAKleFoXdgIqWTydk4vYZQWW4jjg/exec";
-
-  let photosData = [];
-
-  // 1. Ambil Data Galeri
-  async function fetchPhotos() {
-    const grid = document.getElementById("galleryGrid");
-    grid.innerHTML = `<p class="empty-state">Memuat data galeri...</p>`;
-
-    try {
-      const res = await fetch(SCRIPT_URL);
-      const result = await res.json();
-
-      if (result.status === "success") {
-        photosData = result.data.reverse();
-        renderGallery(photosData);
-      } else {
-        grid.innerHTML = `<p class="empty-state" style="color: red;">Gagal: ${result.message}</p>`;
-      }
-    } catch (err) {
-      grid.innerHTML = `<p class="empty-state" style="color: red;">Koneksi error: ${err.message}</p>`;
-    }
-  }
-
-  // 2. Render Card Katalog ke Grid
-  function renderGallery(items) {
-    const grid = document.getElementById("galleryGrid");
-    grid.innerHTML = "";
-
-    if (items.length === 0) {
-      grid.innerHTML = `<p class="empty-state">Tidak ada foto atau katalog yang ditemukan.</p>`;
-      return;
-    }
-
-    items.forEach(item => {
-      const card = document.createElement("div");
-      card.className = "gallery-item";
-
-      const urls = item.imageUrls || [];
-      const safeTitle = escapeHtml(item.judul);
-
-      // Gambar dapat langsung diklik untuk full screen
-      const imagesHtml = urls.map((url, idx) => 
-        `<img src="${url}" alt="${safeTitle} - ${idx + 1}" loading="lazy" title="Klik untuk memperbesar" onclick="openLightbox('${url}', '${safeTitle} (${idx + 1}/${urls.length})')">`
-      ).join("");
-
-      const firstUrl = urls.length > 0 ? urls[0] : "";
-
-      card.innerHTML = `
-        <div class="media-scroll" title="Geser ke samping jika foto lebih dari 1">
-          ${imagesHtml || '<div style="color:white;display:flex;align-items:center;justify-content:center;width:100%;">Tidak ada foto</div>'}
+    <!-- Upload Card Form dengan Efek Glow & Liquid Glass -->
+    <section class="glow-capture rounded-3xl">
+      <div class="glowing-effect" data-glow><div class="glow"></div></div>
+      <div class="relative liquid-glass rounded-3xl p-5 sm:p-6 bg-panel/85 border border-line shadow-2xl space-y-4">
+        
+        <div class="flex items-center justify-between pb-1 border-b border-line/50">
+          <h2 class="font-display font-bold text-base sm:text-lg text-white flex items-center gap-2">
+            <i data-lucide="upload-cloud" class="w-5 h-5 text-pink"></i>
+            <span>Tambah Katalog Foto Baru</span>
+          </h2>
+          <span class="text-[10px] font-mono text-soft uppercase tracking-wider">Multi-Upload Ready</span>
         </div>
-        <div class="gallery-content">
+
+        <form id="uploadForm" class="space-y-3.5">
           <div>
-            <span class="photo-count-badge">${urls.length} Foto (Geser untuk memilih)</span>
-            <h3>${safeTitle}</h3>
-            <p>${escapeHtml(item.deskripsi)}</p>
+            <label class="block text-[11px] font-mono uppercase tracking-wider text-soft mb-1.5">Judul Katalog (Harus Unik)</label>
+            <div class="relative">
+              <input type="text" id="judul" required placeholder="Ketik nama judul unik..."
+                     class="w-full bg-ink/90 border border-line rounded-2xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-soft/40 outline-none focus:border-pink transition-all font-body" />
+              <i data-lucide="type" class="w-4 h-4 text-soft absolute left-3.5 top-3"></i>
+            </div>
           </div>
-          <div class="btn-action-group">
-            ${firstUrl ? `<button class="btn-view-full" onclick="openLightbox('${firstUrl}', '${safeTitle}')">Lihat Penuh</button>` : ''}
-            <button class="btn-edit" onclick="openEditModal('${item.id}')">Edit</button>
+
+          <div>
+            <label class="block text-[11px] font-mono uppercase tracking-wider text-soft mb-1.5">Deskripsi</label>
+            <div class="relative">
+              <textarea id="deskripsi" rows="2" required placeholder="Tuliskan keterangan detail tentang foto ini..."
+                        class="w-full bg-ink/90 border border-line rounded-2xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-soft/40 outline-none focus:border-pink transition-all resize-none font-body"></textarea>
+              <i data-lucide="file-text" class="w-4 h-4 text-soft absolute left-3.5 top-3"></i>
+            </div>
           </div>
+
+          <div>
+            <label class="block text-[11px] font-mono uppercase tracking-wider text-soft mb-1.5">
+              Pilih Foto <span class="text-gold font-normal">(Bisa banyak foto sekaligus • Auto compress > 5 MB)</span>
+            </label>
+            <div class="relative">
+              <input type="file" id="fotoFiles" accept="image/*" multiple required
+                     class="w-full bg-ink/90 border border-line rounded-2xl pl-10 pr-4 py-2.5 text-xs text-soft file:mr-3 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-pink hover:file:text-ink cursor-pointer outline-none focus:border-pink transition-all" />
+              <i data-lucide="image-plus" class="w-4 h-4 text-soft absolute left-3.5 top-3"></i>
+            </div>
+          </div>
+
+          <div id="uploadStatus" class="hidden text-xs p-3 rounded-2xl border font-mono"></div>
+
+          <button type="submit" id="btnUpload"
+                  class="w-full py-3.5 px-4 rounded-2xl font-display font-bold text-sm text-ink bg-gradient-to-r from-pink via-gold to-leaf hover:opacity-95 transition-all tap-press shadow-xl flex items-center justify-center gap-2">
+            <span>Upload ke Cloud Storage</span>
+            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Search Bar & Toolbar -->
+    <div class="space-y-2">
+      <div class="relative flex items-center">
+        <i data-lucide="search" class="w-4 h-4 text-soft absolute left-4 pointer-events-none"></i>
+        <input type="text" id="searchInput" autocomplete="off"
+               placeholder="Cari parsial judul atau deskripsi katalog... 🔍"
+               class="w-full liquid-glass bg-panel/80 border border-line rounded-2xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-soft/40 outline-none focus:border-pink transition-all shadow-sm" />
+        <button type="button" id="btnClearSearch" onclick="resetSearch()" class="hidden absolute right-3 p-1.5 text-soft hover:text-white rounded-lg tap-press">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Gallery Grid -->
+    <section>
+      <div class="flex items-center justify-between mb-3 px-1">
+        <span class="text-xs font-mono uppercase tracking-wider text-soft flex items-center gap-1.5">
+          <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-gold"></i>
+          <span>Daftar Katalog Galeri</span>
+        </span>
+        <button onclick="fetchPhotos()" class="text-xs font-mono text-soft hover:text-white flex items-center gap-1 tap-press">
+          <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      <div id="galleryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Card dimuat oleh JS -->
+        <div class="col-span-full py-16 text-center text-soft text-xs font-mono space-y-2">
+          <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto opacity-40"></i>
+          <p>Menghubungkan ke Google Apps Script...</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal Edit Katalog (Gaya Glass Popup) -->
+  <div id="editModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="liquid-glass rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 bg-panel/95 border-t sm:border border-line w-full max-w-lg shadow-2xl relative space-y-4">
+      <div class="w-12 h-1 bg-white/20 rounded-full mx-auto -mt-1 sm:hidden"></div>
+
+      <div class="flex items-center justify-between pb-2 border-b border-line">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold">
+            <i data-lucide="pencil" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-sm text-white">Edit Katalog & Re-upload</h3>
+            <p class="text-[10px] font-mono text-soft">Perbarui informasi atau ganti set foto</p>
+          </div>
+        </div>
+        <button onclick="closeEditModal()" class="p-1.5 rounded-lg text-soft hover:text-white tap-press">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="editForm" class="space-y-3">
+        <input type="hidden" id="editId">
+
+        <div>
+          <label class="block text-[10px] font-mono uppercase text-soft mb-1">Judul Katalog</label>
+          <input type="text" id="editJudul" required
+                 class="w-full bg-ink/90 border border-line rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-gold" />
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-mono uppercase text-soft mb-1">Deskripsi</label>
+          <textarea id="editDeskripsi" rows="2" required
+                    class="w-full bg-ink/90 border border-line rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-gold resize-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-mono uppercase text-soft mb-1">
+            Upload Ulang Foto <span class="text-soft font-normal">(Opsional, kosongkan jika tetap foto lama)</span>
+          </label>
+          <input type="file" id="editFiles" accept="image/*" multiple
+                 class="w-full bg-ink/90 border border-line rounded-xl px-3 py-1.5 text-xs text-soft file:mr-2 file:py-0.5 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:bg-white/10 file:text-white cursor-pointer" />
+        </div>
+
+        <div id="editStatus" class="hidden text-xs p-2.5 rounded-xl border font-mono"></div>
+
+        <div class="pt-2 border-t border-line flex items-center justify-end gap-2">
+          <button type="button" onclick="closeEditModal()"
+                  class="py-2.5 px-4 rounded-xl text-xs font-mono text-soft hover:text-white bg-white/5 tap-press">
+            Batal
+          </button>
+          <button type="submit" id="btnSaveEdit"
+                  class="py-2.5 px-5 rounded-xl font-display font-semibold text-xs text-ink bg-gold hover:bg-amber-400 transition-colors flex items-center gap-1.5 tap-press shadow-md">
+            <i data-lucide="save" class="w-3.5 h-3.5"></i>
+            <span>Simpan Perubahan</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Lightbox (Lihat Gambar Fullscreen) -->
+  <div id="lightboxModal" onclick="closeLightbox(event)"
+       class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
+    <button class="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 tap-press" onclick="closeLightbox(event)">
+      <i data-lucide="x" class="w-6 h-6"></i>
+    </button>
+    <img id="lightboxImage" src="" alt="Full preview"
+         class="max-w-[92vw] max-h-[80vh] rounded-2xl object-contain shadow-2xl border border-white/10 transition-transform duration-300" />
+    <div id="lightboxTitle" class="text-white text-xs font-mono font-medium mt-3 text-center px-4 py-1.5 rounded-full bg-black/50 border border-white/10 backdrop-blur-md"></div>
+  </div>
+
+  <script>
+    // URL Backend Google Apps Script aktif
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-PqBx-7aXGUgQpLcNvmZxhxwcWAWnKcOKvvMYDutAKleFoXdgIqWTydk4vYZQWW4jjg/exec";
+
+    let photosData = [];
+    let currentTheme = 'dark';
+
+    /* =====================================================================
+       HAPTIC & THEME INITIALIZER
+       ===================================================================== */
+    function triggerHaptic(ms = 25) {
+      if (navigator.vibrate) {
+        try { navigator.vibrate(ms); } catch (e) {}
+      }
+    }
+
+    function initTheme() {
+      const savedTheme = sessionStorage.getItem('galleryTheme') || 'dark';
+      setTheme(savedTheme);
+    }
+
+    function toggleTheme() {
+      triggerHaptic(20);
+      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        icon.classList.remove('mode-icon-spin');
+        void icon.offsetWidth;
+        icon.classList.add('mode-icon-spin');
+      }
+      setTheme(nextTheme);
+    }
+
+    function setTheme(theme) {
+      currentTheme = theme;
+      sessionStorage.setItem('galleryTheme', theme);
+      const html = document.documentElement;
+      const themeIcon = document.getElementById('themeIcon');
+
+      if (theme === 'light') {
+        html.classList.remove('dark');
+        html.classList.add('light');
+        if (themeIcon) {
+          themeIcon.setAttribute('data-lucide', 'sun');
+          themeIcon.className = 'w-4 h-4 text-gold mode-icon-spin';
+        }
+      } else {
+        html.classList.remove('light');
+        html.classList.add('dark');
+        if (themeIcon) {
+          themeIcon.setAttribute('data-lucide', 'moon');
+          themeIcon.className = 'w-4 h-4 text-pink mode-icon-spin';
+        }
+      }
+      lucide.createIcons();
+    }
+
+    /* =====================================================================
+       MOTION GLOW EFFECT
+       ===================================================================== */
+    (function () {
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const { animate } = window.Motion || {};
+
+      const items = Array.from(document.querySelectorAll('[data-glow]')).map((el) => ({
+        el,
+        spread: parseFloat(el.dataset.spread || '40'),
+        proximity: parseFloat(el.dataset.proximity || '64'),
+        inactiveZone: parseFloat(el.dataset.inactiveZone || '0.01'),
+        movementDuration: 2,
+        raf: 0,
+        anim: null,
+      }));
+
+      items.forEach((it) => it.el.style.setProperty('--spread', String(it.spread)));
+      const last = { x: 0, y: 0 };
+
+      function handleMove(item, e) {
+        if (item.raf) cancelAnimationFrame(item.raf);
+        item.raf = requestAnimationFrame(() => {
+          const element = item.el;
+          const { left, top, width, height } = element.getBoundingClientRect();
+          const mouseX = e ? e.x : last.x;
+          const mouseY = e ? e.y : last.y;
+          if (e) { last.x = mouseX; last.y = mouseY; }
+
+          const center = [left + width * 0.5, top + height * 0.5];
+          const distanceFromCenter = Math.hypot(mouseX - center[0], mouseY - center[1]);
+          const inactiveRadius = 0.5 * Math.min(width, height) * item.inactiveZone;
+
+          if (distanceFromCenter < inactiveRadius) {
+            element.style.setProperty('--active', '0');
+            return;
+          }
+
+          const isActive =
+            mouseX > left - item.proximity &&
+            mouseX < left + width + item.proximity &&
+            mouseY > top - item.proximity &&
+            mouseY < top + height + item.proximity;
+
+          element.style.setProperty('--active', isActive ? '1' : '0');
+          if (!isActive) return;
+
+          const currentAngle = parseFloat(element.style.getPropertyValue('--start')) || 0;
+          const targetAngle = (180 * Math.atan2(mouseY - center[1], mouseX - center[0])) / Math.PI + 90;
+          const angleDiff = ((targetAngle - currentAngle + 180) % 360) - 180;
+          const newAngle = currentAngle + angleDiff;
+
+          if (prefersReduced || !animate) {
+            element.style.setProperty('--start', String(newAngle));
+            return;
+          }
+          if (item.anim) item.anim.stop();
+          item.anim = animate(currentAngle, newAngle, {
+            duration: item.movementDuration,
+            ease: [0.16, 1, 0.3, 1],
+            onUpdate: (val) => element.style.setProperty('--start', String(val)),
+          });
+        });
+      }
+
+      document.body.addEventListener('pointermove', (e) => {
+        items.forEach((item) => handleMove(item, e));
+      }, { passive: true });
+    })();
+
+    /* =====================================================================
+       DATA FETCHER & RENDERER
+       ===================================================================== */
+    async function fetchPhotos() {
+      const grid = document.getElementById("galleryGrid");
+      grid.innerHTML = `
+        <div class="col-span-full py-16 text-center text-soft text-xs font-mono space-y-2">
+          <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto opacity-40"></i>
+          <p>Memuat galeri dari spreadsheet...</p>
         </div>
       `;
-      grid.appendChild(card);
-    });
-  }
+      lucide.createIcons();
 
-  // 3. Kontrol Lightbox (Pratinjau Gambar Penuh)
-  function openLightbox(imageUrl, title) {
-    const modal = document.getElementById("lightboxModal");
-    const img = document.getElementById("lightboxImage");
-    const caption = document.getElementById("lightboxTitle");
+      try {
+        const res = await fetch(SCRIPT_URL);
+        const result = await res.json();
 
-    img.src = imageUrl;
-    caption.textContent = title || "";
-    modal.classList.add("active");
-  }
-
-  function closeLightbox(e) {
-    // Tutup hanya jika area luar gambar atau tombol close yang diklik
-    if (e.target.id === "lightboxModal" || e.target.classList.contains("lightbox-close")) {
-      const modal = document.getElementById("lightboxModal");
-      modal.classList.remove("active");
-      document.getElementById("lightboxImage").src = "";
+        if (result.status === "success") {
+          photosData = result.data.reverse();
+          document.getElementById('labelCounterHeader').innerText = `${photosData.length} Katalog`;
+          renderGallery(photosData);
+        } else {
+          grid.innerHTML = `<div class="col-span-full p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-mono text-center">Gagal memuat: ${result.message}</div>`;
+        }
+      } catch (err) {
+        grid.innerHTML = `<div class="col-span-full p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-mono text-center">Gagal terhubung ke Apps Script: ${err.message}</div>`;
+      }
     }
-  }
 
-  // Tutup Lightbox saat menekan tombol Escape di keyboard
-  document.addEventListener("keydown", function(e) {
-    if (e.key === "Escape") {
-      document.getElementById("lightboxModal").classList.remove("active");
-      closeEditModal();
+    function renderGallery(items) {
+      const grid = document.getElementById("galleryGrid");
+      grid.innerHTML = "";
+
+      if (items.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-16 text-center rounded-3xl liquid-glass bg-panel/40 border border-line text-soft space-y-2">
+            <i data-lucide="image-off" class="w-10 h-10 mx-auto opacity-30 text-pink"></i>
+            <p class="text-sm font-semibold text-white">Tidak ada foto ditemukan</p>
+            <p class="text-xs text-soft">Coba kata kunci lain atau upload foto baru di atas</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "liquid-glass rounded-2xl bg-panel/75 border border-line overflow-hidden shadow-lg flex flex-col justify-between";
+
+        const urls = item.imageUrls || [];
+        const safeTitle = escapeHtml(item.judul);
+
+        const imagesHtml = urls.map((url, idx) => `
+          <img src="${url}" alt="${safeTitle} - ${idx + 1}" loading="lazy"
+               onclick="openLightbox('${url}', '${safeTitle} (${idx + 1}/${urls.length})')"
+               class="flex-shrink-0 w-full h-48 object-cover snap-start cursor-zoom-in hover:opacity-95 transition-opacity" />
+        `).join("");
+
+        const firstUrl = urls.length > 0 ? urls[0] : "";
+
+        card.innerHTML = `
+          <div>
+            <div class="relative bg-ink">
+              <div class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory h-48 bg-black/40">
+                ${imagesHtml || '<div class="w-full h-48 flex items-center justify-center text-xs font-mono text-soft">Tidak ada gambar</div>'}
+              </div>
+              <span class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-ink/80 backdrop-blur-md border border-line text-[10px] font-mono text-white">
+                ${urls.length} Foto
+              </span>
+            </div>
+
+            <div class="p-4 space-y-1.5">
+              <h3 class="font-display font-bold text-base text-white truncate">${safeTitle}</h3>
+              <p class="text-xs text-soft line-clamp-3 leading-relaxed font-body">${escapeHtml(item.deskripsi)}</p>
+            </div>
+          </div>
+
+          <div class="p-4 pt-0 grid grid-cols-2 gap-2 border-t border-line/40 mt-3 pt-3">
+            <button onclick="openLightbox('${firstUrl}', '${safeTitle}')"
+                    class="py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-line text-xs font-mono font-semibold text-zinc-200 flex items-center justify-center gap-1.5 tap-press">
+              <i data-lucide="maximize-2" class="w-3.5 h-3.5 text-pink"></i>
+              <span>Perbesar</span>
+            </button>
+            <button onclick="openEditModal('${item.id}')"
+                    class="py-2 px-3 rounded-xl bg-gold/15 hover:bg-gold/25 border border-gold/30 text-xs font-mono font-semibold text-gold flex items-center justify-center gap-1.5 tap-press">
+              <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+              <span>Edit</span>
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      lucide.createIcons();
     }
-  });
 
-  // 4. Pencarian Parsial
-  document.getElementById("searchInput").addEventListener("input", function(e) {
-    const query = e.target.value.toLowerCase().trim();
-    const filtered = photosData.filter(item => {
-      const matchJudul = (item.judul || "").toLowerCase().includes(query);
-      const matchDeskripsi = (item.deskripsi || "").toLowerCase().includes(query);
-      return matchJudul || matchDeskripsi;
+    /* =====================================================================
+       PENCARIAN PARSIAL CERDAS (Case-insensitive)
+       ===================================================================== */
+    const searchInput = document.getElementById("searchInput");
+    const btnClearSearch = document.getElementById("btnClearSearch");
+
+    searchInput.addEventListener("input", function(e) {
+      const keyword = e.target.value.toLowerCase().trim();
+      btnClearSearch.classList.toggle('hidden', keyword.length === 0);
+
+      const tokens = keyword.split(/\s+/).filter(Boolean);
+
+      const filtered = photosData.filter(item => {
+        if (tokens.length === 0) return true;
+        const textTarget = `${item.judul || ''} ${item.deskripsi || ''}`.toLowerCase();
+        return tokens.every(token => textTarget.includes(token));
+      });
+
+      renderGallery(filtered);
     });
-    renderGallery(filtered);
-  });
 
-  // 5. Kompresi Gambar (> 5 MB) Menggunakan Canvas
-  async function compressImageIfNeeded(file) {
-    const MAX_SIZE = 5 * 1024 * 1024;
-    if (file.size <= MAX_SIZE) return file;
+    function resetSearch() {
+      searchInput.value = "";
+      btnClearSearch.classList.add('hidden');
+      renderGallery(photosData);
+      searchInput.focus();
+    }
 
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const MAX_DIM = 1920;
+    /* =====================================================================
+       KOMPRESI GAMBAR CANVAS (> 5 MB)
+       ===================================================================== */
+    async function compressImageIfNeeded(file) {
+      const MAX_SIZE = 5 * 1024 * 1024;
+      if (file.size <= MAX_SIZE) return file;
 
-          if (width > MAX_DIM || height > MAX_DIM) {
-            if (width > height) {
-              height = Math.round((height * MAX_DIM) / width);
-              width = MAX_DIM;
-            } else {
-              width = Math.round((width * MAX_DIM) / height);
-              height = MAX_DIM;
-            }
-          }
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const MAX_DIM = 1920;
 
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          let quality = 0.8;
-          function loopCompress(q) {
-            canvas.toBlob((blob) => {
-              if (!blob) return reject(new Error("Gagal kompresi."));
-              if (blob.size > MAX_SIZE && q > 0.3) {
-                loopCompress(q - 0.15);
+            if (width > MAX_DIM || height > MAX_DIM) {
+              if (width > height) {
+                height = Math.round((height * MAX_DIM) / width);
+                width = MAX_DIM;
               } else {
-                resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
-                  type: "image/jpeg",
-                  lastModified: Date.now()
-                }));
+                width = Math.round((width * MAX_DIM) / height);
+                height = MAX_DIM;
               }
-            }, 'image/jpeg', q);
-          }
-          loopCompress(quality);
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            let quality = 0.8;
+            function loopCompress(q) {
+              canvas.toBlob((blob) => {
+                if (!blob) return reject(new Error("Gagal kompresi."));
+                if (blob.size > MAX_SIZE && q > 0.3) {
+                  loopCompress(q - 0.15);
+                } else {
+                  resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                    type: "image/jpeg",
+                    lastModified: Date.now()
+                  }));
+                }
+              }, 'image/jpeg', q);
+            }
+            loopCompress(quality);
+          };
+          img.onerror = () => reject(new Error("Gagal membaca file gambar."));
         };
-        img.onerror = () => reject(new Error("Gagal membaca file gambar."));
-      };
-      reader.onerror = () => reject(new Error("Gagal memuat file gambar."));
+        reader.onerror = () => reject(new Error("Gagal memuat file gambar."));
+      });
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function prepareFilesPayload(fileList, statusElement) {
+      const preparedFiles = [];
+      for (let i = 0; i < fileList.length; i++) {
+        let file = fileList[i];
+        if (file.size > 5 * 1024 * 1024) {
+          statusElement.textContent = `Mengompres foto ke-${i + 1} dari ${fileList.length}...`;
+          file = await compressImageIfNeeded(file);
+        }
+        statusElement.textContent = `Mengonversi foto ke-${i + 1} dari ${fileList.length}...`;
+        const base64Str = await fileToBase64(file);
+        preparedFiles.push({
+          fileName: file.name,
+          mimeType: file.type,
+          base64File: base64Str
+        });
+      }
+      return preparedFiles;
+    }
+
+    /* =====================================================================
+       SUBMIT UPLOAD (CREATE)
+       ===================================================================== */
+    document.getElementById("uploadForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      triggerHaptic(30);
+
+      const btn = document.getElementById("btnUpload");
+      const statusMsg = document.getElementById("uploadStatus");
+      const judul = document.getElementById("judul").value.trim();
+      const deskripsi = document.getElementById("deskripsi").value;
+      const files = document.getElementById("fotoFiles").files;
+
+      if (files.length === 0) return;
+
+      // Cek judul duplikat lokal
+      const isDuplicate = photosData.some(item => (item.judul || "").toLowerCase() === judul.toLowerCase());
+      if (isDuplicate) {
+        statusMsg.className = "text-xs p-3 rounded-2xl border border-red-500/40 bg-red-500/10 text-red-300 block font-mono";
+        statusMsg.textContent = `Judul "${judul}" sudah terdaftar. Gunakan judul lain.`;
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">◌</span> Mengunggah...`;
+      statusMsg.className = "text-xs p-3 rounded-2xl border border-line bg-panel text-soft block font-mono";
+
+      try {
+        const filePayloads = await prepareFilesPayload(files, statusMsg);
+
+        statusMsg.textContent = "Menyimpan ke Google Drive & Spreadsheet...";
+        const response = await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "create",
+            judul: judul,
+            deskripsi: deskripsi,
+            files: filePayloads
+          })
+        });
+
+        const resJson = await response.json();
+        if (resJson.status === "success") {
+          triggerHaptic(60);
+          statusMsg.className = "text-xs p-3 rounded-2xl border border-leaf/40 bg-leaf/10 text-emerald-300 block font-mono";
+          statusMsg.textContent = "Katalog baru berhasil ditambahkan!";
+          document.getElementById("uploadForm").reset();
+          fetchPhotos();
+        } else {
+          throw new Error(resJson.message);
+        }
+      } catch (err) {
+        statusMsg.className = "text-xs p-3 rounded-2xl border border-red-500/40 bg-red-500/10 text-red-300 block font-mono";
+        statusMsg.textContent = "Gagal: " + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>Upload ke Cloud Storage</span><i data-lucide="arrow-up-right" class="w-4 h-4"></i>`;
+        lucide.createIcons();
+      }
     });
-  }
 
-  // 6. Ubah File ke Base64
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+    /* =====================================================================
+       EDIT MODAL & UPDATE
+       ===================================================================== */
+    function openEditModal(id) {
+      triggerHaptic(20);
+      const item = photosData.find(p => p.id === id);
+      if (!item) return;
+
+      document.getElementById("editId").value = item.id;
+      document.getElementById("editJudul").value = item.judul;
+      document.getElementById("editDeskripsi").value = item.deskripsi;
+      document.getElementById("editFiles").value = "";
+      document.getElementById("editStatus").classList.add("hidden");
+
+      document.getElementById("editModal").classList.remove("hidden");
+    }
+
+    function closeEditModal() {
+      document.getElementById("editModal").classList.add("hidden");
+    }
+
+    document.getElementById("editForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      triggerHaptic(30);
+
+      const btn = document.getElementById("btnSaveEdit");
+      const statusMsg = document.getElementById("editStatus");
+      const id = document.getElementById("editId").value;
+      const judul = document.getElementById("editJudul").value.trim();
+      const deskripsi = document.getElementById("editDeskripsi").value;
+      const files = document.getElementById("editFiles").files;
+
+      const isDuplicate = photosData.some(item => item.id !== id && (item.judul || "").toLowerCase() === judul.toLowerCase());
+      if (isDuplicate) {
+        statusMsg.className = "text-xs p-2.5 rounded-xl border border-red-500/40 bg-red-500/10 text-red-300 block font-mono";
+        statusMsg.textContent = `Judul "${judul}" sudah dipakai katalog lain.`;
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">◌</span> Menyimpan...`;
+      statusMsg.className = "text-xs p-2.5 rounded-xl border border-line bg-panel text-soft block font-mono";
+
+      try {
+        let filePayloads = [];
+        if (files.length > 0) {
+          filePayloads = await prepareFilesPayload(files, statusMsg);
+        }
+
+        statusMsg.textContent = "Menyimpan pembaruan ke Google Drive & Sheets...";
+        const response = await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "update",
+            id: id,
+            judul: judul,
+            deskripsi: deskripsi,
+            files: filePayloads
+          })
+        });
+
+        const resJson = await response.json();
+        if (resJson.status === "success") {
+          triggerHaptic(50);
+          closeEditModal();
+          fetchPhotos();
+        } else {
+          throw new Error(resJson.message);
+        }
+      } catch (err) {
+        statusMsg.className = "text-xs p-2.5 rounded-xl border border-red-500/40 bg-red-500/10 text-red-300 block font-mono";
+        statusMsg.textContent = "Gagal memperbarui: " + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="save" class="w-3.5 h-3.5"></i><span>Simpan Perubahan</span>`;
+        lucide.createIcons();
+      }
     });
-  }
 
-  // 7. Siapkan Payload File
-  async function prepareFilesPayload(fileList, statusElement) {
-    const preparedFiles = [];
-    for (let i = 0; i < fileList.length; i++) {
-      let file = fileList[i];
-      if (file.size > 5 * 1024 * 1024) {
-        statusElement.textContent = `Mengompres foto ke-${i + 1} dari ${fileList.length}...`;
-        file = await compressImageIfNeeded(file);
+    /* =====================================================================
+       LIGHTBOX VIEWER
+       ===================================================================== */
+    function openLightbox(imageUrl, title) {
+      triggerHaptic(20);
+      const modal = document.getElementById("lightboxModal");
+      const img = document.getElementById("lightboxImage");
+      const caption = document.getElementById("lightboxTitle");
+
+      img.src = imageUrl;
+      caption.textContent = title || "";
+      modal.classList.remove("hidden");
+    }
+
+    function closeLightbox(e) {
+      if (e.target.id === "lightboxModal" || e.target.closest("button")) {
+        document.getElementById("lightboxModal").classList.add("hidden");
+        document.getElementById("lightboxImage").src = "";
       }
-      statusElement.textContent = `Memproses foto ke-${i + 1} dari ${fileList.length}...`;
-      const base64Str = await fileToBase64(file);
-      preparedFiles.push({
-        fileName: file.name,
-        mimeType: file.type,
-        base64File: base64Str
-      });
-    }
-    return preparedFiles;
-  }
-
-  // 8. Handle Submit Form Upload
-  document.getElementById("uploadForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
-    const btn = document.getElementById("btnUpload");
-    const statusMsg = document.getElementById("uploadStatus");
-    const judul = document.getElementById("judul").value.trim();
-    const deskripsi = document.getElementById("deskripsi").value;
-    const files = document.getElementById("fotoFiles").files;
-
-    if (files.length === 0) return;
-
-    const isDuplicate = photosData.some(item => (item.judul || "").toLowerCase() === judul.toLowerCase());
-    if (isDuplicate) {
-      statusMsg.style.color = "#dc3545";
-      statusMsg.textContent = `Judul "${judul}" sudah ada. Silakan gunakan judul lain.`;
-      return;
     }
 
-    btn.disabled = true;
-    btn.textContent = "Mengunggah...";
-    statusMsg.style.color = "#495057";
-
-    try {
-      const filePayloads = await prepareFilesPayload(files, statusMsg);
-
-      statusMsg.textContent = "Mengunggah ke Cloud Storage...";
-      const response = await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          action: "create",
-          judul: judul,
-          deskripsi: deskripsi,
-          files: filePayloads
-        })
-      });
-
-      const resJson = await response.json();
-      if (resJson.status === "success") {
-        statusMsg.style.color = "green";
-        statusMsg.textContent = "Berhasil menambahkan katalog baru!";
-        document.getElementById("uploadForm").reset();
-        fetchPhotos();
-      } else {
-        throw new Error(resJson.message);
-      }
-    } catch (err) {
-      statusMsg.style.color = "#dc3545";
-      statusMsg.textContent = "Gagal: " + err.message;
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Upload Semua Foto";
-    }
-  });
-
-  // 9. Modal Edit Form
-  function openEditModal(id) {
-    const item = photosData.find(p => p.id === id);
-    if (!item) return;
-
-    document.getElementById("editId").value = item.id;
-    document.getElementById("editJudul").value = item.judul;
-    document.getElementById("editDeskripsi").value = item.deskripsi;
-    document.getElementById("editFiles").value = "";
-    document.getElementById("editStatus").textContent = "";
-
-    document.getElementById("editModal").classList.add("active");
-  }
-
-  function closeEditModal() {
-    document.getElementById("editModal").classList.remove("active");
-  }
-
-  document.getElementById("editForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
-    const btn = document.getElementById("btnSaveEdit");
-    const statusMsg = document.getElementById("editStatus");
-    const id = document.getElementById("editId").value;
-    const judul = document.getElementById("editJudul").value.trim();
-    const deskripsi = document.getElementById("editDeskripsi").value;
-    const files = document.getElementById("editFiles").files;
-
-    const isDuplicate = photosData.some(item => item.id !== id && (item.judul || "").toLowerCase() === judul.toLowerCase());
-    if (isDuplicate) {
-      statusMsg.style.color = "#dc3545";
-      statusMsg.textContent = `Judul "${judul}" sudah dipakai katalog lain.`;
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = "Menyimpan...";
-    statusMsg.style.color = "#495057";
-
-    try {
-      let filePayloads = [];
-      if (files.length > 0) {
-        filePayloads = await prepareFilesPayload(files, statusMsg);
-      }
-
-      statusMsg.textContent = "Menyimpan perubahan ke server...";
-      const response = await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          action: "update",
-          id: id,
-          judul: judul,
-          deskripsi: deskripsi,
-          files: filePayloads
-        })
-      });
-
-      const resJson = await response.json();
-      if (resJson.status === "success") {
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") {
+        document.getElementById("lightboxModal").classList.add("hidden");
         closeEditModal();
-        fetchPhotos();
-      } else {
-        throw new Error(resJson.message);
       }
-    } catch (err) {
-      statusMsg.style.color = "#dc3545";
-      statusMsg.textContent = "Gagal memperbarui: " + err.message;
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Simpan Perubahan";
+    });
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.innerText = text || '';
+      return div.innerHTML;
     }
-  });
 
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.innerText = text || '';
-    return div.innerHTML;
-  }
-
-  // Load katalog saat halaman dimuat
-  fetchPhotos();
-</script>
+    // Init App
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      fetchPhotos();
+      lucide.createIcons();
+    });
+  </script>
 </body>
 </html>
