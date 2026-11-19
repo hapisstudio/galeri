@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0b0d12" />
-  <title>Cloud Photo Gallery</title>
+  <title>Galeri Cloud — Hapis Studio</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -16,6 +16,9 @@
 
   <!-- Lucide Icons (CDN) -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- JSZip CDN for Downloading Full Catalog as ZIP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,6 +41,8 @@
             card: 'var(--color-card)',
             line: 'var(--color-line)',
             soft: 'var(--color-soft)',
+            title: 'var(--color-text-title)',
+            main: 'var(--color-text-main)',
             pink: '#dd7bbb',
             gold: '#d79f1e',
             leaf: '#5a922c',
@@ -52,34 +57,66 @@
     :root {
       color-scheme: dark;
       -webkit-tap-highlight-color: transparent;
-      --color-bg: #0b0d12;
-      --color-panel: #11141b;
-      --color-card: #161a24;
-      --color-line: #232836;
-      --color-soft: #9aa3b5;
-      --color-text-main: #e8ebf2;
+      --color-bg: #07090e;
+      --color-panel: #0e121b;
+      --color-card: #131824;
+      --color-line: rgba(255, 255, 255, 0.14);
+      --color-soft: #9ca7bd;
+      --color-text-main: #edf1f8;
       --color-text-title: #ffffff;
-      --grid-line: #232836;
-      --glass-bg: rgba(255, 255, 255, 0.03);
-      --glass-reflection: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.02) 60%, rgba(255, 255, 255, 0.15) 100%);
-      --glass-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
-      --header-bg: rgba(11, 13, 18, 0.75);
+      --grid-line: rgba(255, 255, 255, 0.05);
+
+      /* iOS 27 Liquid Glass Variables (Dark Optics) */
+      --lg-surface: linear-gradient(155deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.03) 48%, rgba(255, 255, 255, 0.07) 100%);
+      --lg-surface-elevated: linear-gradient(155deg, rgba(26, 32, 46, 0.72) 0%, rgba(14, 18, 27, 0.62) 55%, rgba(28, 34, 50, 0.68) 100%);
+      --lg-specular-rim: linear-gradient(145deg,
+        rgba(255, 255, 255, 0.58) 0%,
+        rgba(221, 123, 187, 0.25) 18%,
+        rgba(255, 255, 255, 0.05) 45%,
+        rgba(76, 120, 148, 0.22) 72%,
+        rgba(255, 255, 255, 0.42) 100%);
+      --lg-inner-caustic: inset 0 1.5px 1px rgba(255, 255, 255, 0.45),
+        inset 0 -1.5px 2px rgba(0, 0, 0, 0.45),
+        inset 1px 0 1px rgba(255, 255, 255, 0.18),
+        inset -1px 0 1px rgba(255, 255, 255, 0.10);
+      --lg-outer-depth: 0 22px 48px -12px rgba(0, 0, 0, 0.72),
+        0 4px 16px -2px rgba(0, 0, 0, 0.45);
+      --lg-sheen: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.05) 36%, transparent 70%);
+
+      --input-bg: rgba(8, 11, 18, 0.72);
+      --pill-bg: rgba(255, 255, 255, 0.08);
     }
 
     html.light {
       color-scheme: light;
-      --color-bg: #f4f6fb;
+      --color-bg: #eef2f9;
       --color-panel: #ffffff;
       --color-card: #f8fafc;
-      --color-line: #e2e8f0;
-      --color-soft: #64748b;
+      --color-line: rgba(15, 23, 42, 0.11);
+      --color-soft: #526077;
       --color-text-main: #1e293b;
-      --color-text-title: #0f172a;
-      --grid-line: rgba(148, 163, 184, 0.28);
-      --glass-bg: rgba(255, 255, 255, 0.70);
-      --glass-reflection: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.45) 40%, rgba(226, 232, 240, 0.2) 70%, rgba(255, 255, 255, 0.8) 100%);
-      --glass-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9);
-      --header-bg: rgba(244, 246, 251, 0.85);
+      --color-text-title: #0b1120;
+      --grid-line: rgba(100, 116, 139, 0.16);
+
+      /* iOS 27 Liquid Glass Variables (Daylight Crystal Optics) */
+      --lg-surface: linear-gradient(155deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.46) 50%, rgba(255, 255, 255, 0.72) 100%);
+      --lg-surface-elevated: linear-gradient(155deg, rgba(255, 255, 255, 0.90) 0%, rgba(244, 247, 253, 0.74) 55%, rgba(255, 255, 255, 0.86) 100%);
+      --lg-specular-rim: linear-gradient(145deg,
+        rgba(255, 255, 255, 1) 0%,
+        rgba(221, 123, 187, 0.28) 22%,
+        rgba(148, 163, 184, 0.18) 50%,
+        rgba(76, 120, 148, 0.28) 78%,
+        rgba(255, 255, 255, 0.98) 100%);
+      --lg-inner-caustic: inset 0 1.5px 1.5px rgba(255, 255, 255, 1),
+        inset 0 -1.5px 2px rgba(15, 23, 42, 0.07),
+        inset 1px 0 1px rgba(255, 255, 255, 0.85),
+        inset -1px 0 1px rgba(255, 255, 255, 0.65);
+      --lg-outer-depth: 0 20px 44px -12px rgba(15, 23, 42, 0.14),
+        0 4px 14px -2px rgba(15, 23, 42, 0.06);
+      --lg-sheen: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.2) 38%, transparent 72%);
+
+      --input-bg: rgba(255, 255, 255, 0.68);
+      --pill-bg: rgba(255, 255, 255, 0.58);
     }
 
     body {
@@ -92,7 +129,7 @@
       overscroll-behavior-y: contain;
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
-      transition: background-color 0.3s ease, color 0.3s ease;
+      transition: background-color 0.35s cubic-bezier(0.22, 1, 0.36, 1), color 0.35s ease;
     }
     ::selection { background: #dd7bbb; color: #0b0d12; }
 
@@ -105,6 +142,15 @@
       -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 15%, #000 30%, transparent 80%);
       mask-image: radial-gradient(ellipse 90% 60% at 50% 15%, #000 30%, transparent 80%);
       transition: background-image 0.3s ease;
+    }
+
+    /* Ambient Refractive Caustic Orbs (Latar belakang agar pembiasan kaca terlihat nyata) */
+    @keyframes floatCaustic {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      50% { transform: translate3d(24px, -18px, 0) scale(1.06); }
+    }
+    .caustic-orb {
+      animation: floatCaustic 14s ease-in-out infinite;
     }
 
     /* Glowing Border Effect */
@@ -161,26 +207,174 @@
           #00000000 0deg, #fff, #00000000 calc(var(--spread) * 2deg));
     }
 
-    /* Liquid Glass Effect */
+    /* =====================================================================
+       iOS 27 LIQUID GLASS MATERIAL SYSTEM
+       ===================================================================== */
     .liquid-glass {
-      background: var(--glass-bg);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      box-shadow: var(--glass-shadow);
+      background: var(--lg-surface);
+      backdrop-filter: blur(28px) saturate(210%) contrast(106%) brightness(104%);
+      -webkit-backdrop-filter: blur(28px) saturate(210%) contrast(106%) brightness(104%);
+      box-shadow: var(--lg-outer-depth), var(--lg-inner-caustic);
+      border-color: transparent !important;
       position: relative;
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      isolation: isolate;
+      transition:
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        background 0.35s ease;
     }
+
+    /* Lapisan 1: Specular Chromatic Rim (Pembiasan tepi kaca prismatik iOS 27) */
     .liquid-glass::before {
       content: '';
       position: absolute;
       inset: 0;
       border-radius: inherit;
-      padding: 1px;
-      background: var(--glass-reflection);
+      padding: 1.25px;
+      background: var(--lg-specular-rim);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
       pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Lapisan 2: Interactive Specular Sheen (Kilau optik yang mengikuti kursor/sentuhan) */
+    .liquid-glass::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: var(--lg-sheen);
+      opacity: 0.75;
+      pointer-events: none;
+      z-index: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Varian Liquid Glass untuk Modal & Header (Lebih padat agar teks tetap kontras tinggi) */
+    .liquid-glass-elevated {
+      background: var(--lg-surface-elevated);
+      backdrop-filter: blur(36px) saturate(225%) contrast(108%);
+      -webkit-backdrop-filter: blur(36px) saturate(225%) contrast(108%);
+      box-shadow: var(--lg-outer-depth), var(--lg-inner-caustic);
+      border-color: transparent !important;
+      position: relative;
+      isolation: isolate;
+    }
+    .liquid-glass-elevated::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1.25px;
+      background: var(--lg-specular-rim);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Tombol & Pill Kaca Mengambang ala iOS 27 Control Center */
+    .ios-glass-pill {
+      background: var(--pill-bg);
+      backdrop-filter: blur(18px) saturate(190%);
+      -webkit-backdrop-filter: blur(18px) saturate(190%);
+      box-shadow:
+        inset 0 1px 0.5px rgba(255, 255, 255, 0.32),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.15),
+        0 4px 12px -2px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    html.light .ios-glass-pill {
+      box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.95),
+        0 4px 12px -2px rgba(15, 23, 42, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+    }
+    .ios-glass-pill:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Spring Physics Tap ala iOS 27 */
+    .tap-press {
+      transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+    }
+    .tap-press:active {
+      transform: scale(0.95);
+    }
+
+    /* =====================================================================
+       iOS 27 LIQUID GLASS PIN LOCK SCREEN
+       ===================================================================== */
+    @keyframes iosPinShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-12px); }
+      40% { transform: translateX(12px); }
+      60% { transform: translateX(-8px); }
+      80% { transform: translateX(8px); }
+    }
+    .pin-shake {
+      animation: iosPinShake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    .ios-pin-key {
+      background: var(--lg-surface);
+      backdrop-filter: blur(26px) saturate(210%) brightness(106%);
+      -webkit-backdrop-filter: blur(26px) saturate(210%) brightness(106%);
+      box-shadow: var(--lg-outer-depth), var(--lg-inner-caustic);
+      position: relative;
+      isolation: isolate;
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s ease, box-shadow 0.2s ease;
+    }
+    .ios-pin-key::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1.25px;
+      background: var(--lg-specular-rim);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    .ios-pin-key:hover {
+      background: rgba(255, 255, 255, 0.16);
+      transform: scale(1.03);
+    }
+    html.light .ios-pin-key:hover {
+      background: rgba(255, 255, 255, 0.92);
+    }
+    .ios-pin-key:active {
+      transform: scale(0.91);
+      background: rgba(221, 123, 187, 0.28);
+    }
+
+    .pin-dot {
+      transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .pin-dot.filled {
+      background-color: #ffffff;
+      border-color: #ffffff;
+      transform: scale(1.22);
+      box-shadow: 0 0 14px rgba(255, 255, 255, 0.75);
+    }
+    html.light .pin-dot.filled {
+      background-color: #0f172a;
+      border-color: #0f172a;
+      box-shadow: 0 0 12px rgba(15, 23, 42, 0.35);
+    }
+
+    .themed-input {
+      background: var(--input-bg);
+      color: var(--color-text-title);
+    }
+
+    .ios-glass-pill {
+      background: var(--pill-bg);
     }
 
     .gradient-text {
@@ -209,16 +403,136 @@
   </style>
 </head>
 
-<body class="antialiased flex flex-col justify-between text-zinc-100">
+<body class="antialiased flex flex-col justify-between text-main">
+  <!-- SVG Liquid Refraction Filter (iOS 27 Glass Optics) -->
+  <svg width="0" height="0" class="fixed pointer-events-none opacity-0" aria-hidden="true">
+    <defs>
+      <filter id="ios27-liquid-refract" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.016" numOctaves="2" seed="7" result="noise" />
+        <feGaussianBlur in="noise" stdDeviation="2.5" result="smoothNoise" />
+        <feDisplacementMap in="SourceGraphic" in2="smoothNoise" scale="14" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+  </svg>
 
-  <!-- Background Gradients & Mesh Grid -->
+
+  <!-- Background Gradients & Caustic Light Orbs (iOS 27 Depth) -->
   <div class="fixed inset-0 hero-grid pointer-events-none z-0"></div>
-  <div class="fixed -top-32 left-1/2 -translate-x-1/2 w-80 h-80 sm:w-[42rem] sm:h-[42rem] rounded-full blur-[110px] opacity-20 pointer-events-none z-0"
+  <div class="fixed -top-32 left-1/2 -translate-x-1/2 w-80 h-80 sm:w-[44rem] sm:h-[44rem] rounded-full blur-[120px] opacity-25 pointer-events-none z-0 caustic-orb"
        style="background:conic-gradient(from 90deg,#dd7bbb,#d79f1e,#5a922c,#4c7894,#dd7bbb)"></div>
+  <div class="fixed top-1/3 -left-24 w-72 h-72 sm:w-96 sm:h-96 rounded-full blur-[130px] opacity-15 pointer-events-none z-0 caustic-orb"
+       style="background:radial-gradient(circle,#dd7bbb,transparent 70%); animation-delay: -4s;"></div>
+  <div class="fixed bottom-10 -right-24 w-72 h-72 sm:w-[28rem] sm:h-[28rem] rounded-full blur-[130px] opacity-15 pointer-events-none z-0 caustic-orb"
+       style="background:radial-gradient(circle,#4c7894,transparent 70%); animation-delay: -8s;"></div>
+
+  <!-- =====================================================================
+       iOS 27 LIQUID GLASS LOCK SCREEN OVERLAY
+       ===================================================================== -->
+  <div id="pinLockOverlay"
+       class="fixed inset-0 z-[70] flex flex-col items-center justify-between px-6 py-8 sm:py-12 backdrop-blur-3xl bg-ink/80 transition-all duration-500">
+    
+    <!-- Top Bar: Clock / Brand & Theme Toggle -->
+    <div class="w-full max-w-sm flex items-center justify-between">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full ios-glass-pill text-[11px] font-mono text-soft">
+        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-pink"></i>
+        <span>Hapis Studio Vault</span>
+      </div>
+      <button type="button" onclick="toggleTheme()" title="Ganti Mode Terang / Gelap"
+              class="w-9 h-9 rounded-full ios-glass-pill flex items-center justify-center text-main tap-press">
+        <i id="lockThemeIcon" data-lucide="moon" class="w-4 h-4 text-pink"></i>
+      </button>
+    </div>
+
+    <!-- Center Lock Card & Keypad -->
+    <div class="w-full max-w-[320px] flex flex-col items-center text-center space-y-6 my-auto">
+      <!-- Glass Padlock Emblem -->
+      <div class="liquid-glass w-16 h-16 rounded-[22px] flex items-center justify-center text-pink shadow-2xl">
+        <i id="pinLockGlyph" data-lucide="lock" class="w-7 h-7"></i>
+      </div>
+
+      <div class="space-y-1">
+        <h2 id="pinScreenTitle" class="font-display font-bold text-xl tracking-tight text-title">Masukkan PIN Galeri</h2>
+        <p id="pinScreenSubtitle" class="text-xs font-mono text-soft">Akses terkunci • Masukkan 6-digit PIN</p>
+      </div>
+
+      <!-- 6 PIN Dots -->
+      <div id="pinDotsRow" class="flex items-center justify-center gap-3.5 py-1">
+        <span class="pin-dot w-3.5 h-3.5 rounded-full border border-soft/50 bg-transparent"></span>
+        <span class="pin-dot w-3.5 h-3.5 rounded-full border border-soft/50 bg-transparent"></span>
+        <span class="pin-dot w-3.5 h-3.5 rounded-full border border-soft/50 bg-transparent"></span>
+        <span class="pin-dot w-3.5 h-3.5 rounded-full border border-soft/50 bg-transparent"></span>
+        <span class="pin-dot w-3.5 h-3.5 rounded-full border border-soft/50 bg-transparent"></span>
+        <span class="pin-dot w-3.5 h-3.5 rounded-full border border-soft/50 bg-transparent"></span>
+      </div>
+
+      <!-- iOS 27 Circular Liquid Glass Numpad -->
+      <div class="grid grid-cols-3 gap-4 pt-1">
+        <button type="button" onclick="pressPinDigit('1')" class="ios-pin-key w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center">
+          <span class="font-display text-2xl font-semibold text-title leading-none">1</span>
+          <span class="text-[9px] font-mono tracking-widest text-soft/60 mt-0.5">&nbsp;</span>
+        </button>
+        <button type="button" onclick="pressPinDigit('2')" class="ios-pin-key w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center">
+          <span class="font-display text-2xl font-semibold text-title leading-none">2</span>
+          <span class="text-[9px] font-mono tracking-widest text-soft/60 mt-0.5">ABC</span>
+        </button>
+        <button type="button" onclick="pressPinDigit('3')" class="ios-pin-key w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center">
+          <span class="font-display text-2xl font-semibold text-title leading-none">3</span>
+          <span class="text-[9px] font-mono tracking-widest text-soft/60 mt-0.5">DEF</span>
+        </button>
+        <button type="button" onclick="pressPinDigit('4')" class="ios-pin-key w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center">
+          <span class="font-display text-2xl font-semibold text-title leading-none">4</span>
+          <span class="text-[9px] font-mono tracking-widest text-soft/60 mt-0.5">GHI</span>
+        </button>
+        <button type="button" onclick="pressPinDigit('5')" class="ios-pin-key w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center">
+          <span class="font-display text-2xl font-semibold text-title leading-none">5</span>
+          <span class="text-[9px] font-mono tracking-widest text-soft/60 mt-0.5">JKL</span>
+        </button>
+        <button type="button" onclick="pressPinDigit('6')" class="ios-pin-key w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center">
+          <span class="font-display text-2xl font-semibold text-title leading-none">6</span>
+          <span class="text-[9px] font-mono tracking-widest text-soft/60 mt-0.5">MNO</span>
+        </button>
+        <button type="button" onclick="pressPinDigit('7')" class="ios-pin-key w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center">
+          <span class="font-display text-2xl font-semibold text-title leading-none">7</span>
+          <span class="text-[9px] font-mono tracking-widest text-soft/60 mt-0.5">PQRS</span>
+        </button>
+        <button type="button" onclick="pressPinDigit('8')" class="ios-pin-key w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center">
+          <span class="font-display text-2xl font-semibold text-title leading-none">8</span>
+          <span class="text-[9px] font-mono tracking-widest text-soft/60 mt-0.5">TUV</span>
+        </button>
+        <button type="button" onclick="pressPinDigit('9')" class="ios-pin-key w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center">
+          <span class="font-display text-2xl font-semibold text-title leading-none">9</span>
+          <span class="text-[9px] font-mono tracking-widest text-soft/60 mt-0.5">WXYZ</span>
+        </button>
+
+        <!-- Bottom Row: Reset/Setup PIN, 0, Delete -->
+        <button type="button" onclick="togglePinSetupMode()" id="btnPinModeAction"
+                class="w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center text-soft hover:text-title text-[10px] font-mono tap-press">
+          <i data-lucide="key-round" class="w-4 h-4 mb-0.5 text-gold"></i>
+          <span id="lblPinModeAction">Ubah PIN</span>
+        </button>
+        <button type="button" onclick="pressPinDigit('0')" class="ios-pin-key w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center">
+          <span class="font-display text-2xl font-semibold text-title leading-none">0</span>
+        </button>
+        <button type="button" onclick="deletePinDigit()"
+                class="w-[72px] h-[72px] rounded-full flex flex-col items-center justify-center text-soft hover:text-pink tap-press">
+          <i data-lucide="delete" class="w-5 h-5"></i>
+          <span class="text-[10px] font-mono mt-0.5">Hapus</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer Hint -->
+    <p id="pinDefaultHint" class="text-[11px] font-mono text-soft/80">
+      PIN Default: <span class="text-pink font-semibold">123456</span> • Mendukung keyboard angka
+    </p>
+  </div>
+
+  <!-- Toast Notification Floating -->
+  <div id="toastContainer" class="fixed bottom-5 right-4 left-4 sm:left-auto sm:w-80 z-[60] flex flex-col gap-2 pointer-events-none"></div>
 
   <!-- Header Modern -->
-  <header class="sticky top-0 z-40 px-3.5 pt-3 pb-2.5 bg-ink/80 backdrop-blur-xl border-b border-line/60">
-    <div class="max-w-4xl mx-auto flex items-center justify-between">
+  <header class="sticky top-0 z-40 px-3.5 pt-3 pb-2.5 liquid-glass-elevated rounded-none border-b border-line/40">
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <!-- App Brand -->
       <div class="flex items-center gap-2.5">
         <div class="w-8 h-8 rounded-xl bg-panel border border-line flex items-center justify-center shadow-inner text-pink">
@@ -228,20 +542,33 @@
           <h1 class="font-display font-bold text-base tracking-tight leading-none">
             <span class="gradient-text">Galeri</span><span class="text-soft"> Cloud</span>
           </h1>
-          <p class="text-[10px] font-mono text-soft leading-none mt-1">Google Drive & Sheets Storage</p>
+          <p class="text-[10px] font-mono text-soft leading-none mt-1">Original Aspect • Multi-Photo • ZIP</p>
         </div>
       </div>
 
       <!-- Top Actions -->
-      <div class="flex items-center gap-2">
-        <span id="badgeTotalKatalog" class="px-2.5 py-1 rounded-full bg-white/5 border border-line text-[11px] font-mono text-zinc-300 flex items-center gap-1.5">
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <span id="badgeTotalKatalog" class="px-2.5 py-1 rounded-full ios-glass-pill border border-line text-[11px] font-mono text-main flex items-center gap-1.5">
           <span class="w-1.5 h-1.5 rounded-full bg-leaf animate-pulse"></span>
           <span id="labelCounterHeader">0 Katalog</span>
         </span>
 
+        <!-- Toggle Upload Form Collapse -->
+        <button onclick="toggleUploadSection()" id="btnToggleUpload" title="Buka/Tutup Form Tambah Katalog"
+                class="flex items-center gap-1.5 px-2.5 h-8 rounded-xl bg-pink/15 border border-pink/30 text-pink hover:bg-pink/25 text-xs font-mono font-semibold transition-all tap-press">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Tambah</span>
+        </button>
+
+        <!-- Lock Screen Button -->
+        <button onclick="lockGallery()" title="Kunci Galeri Sekarang"
+                class="flex items-center justify-center w-8 h-8 rounded-xl ios-glass-pill border border-line text-main hover:text-gold transition-all tap-press">
+          <i data-lucide="lock" class="w-4 h-4 text-gold"></i>
+        </button>
+
         <!-- Theme Switcher -->
         <button onclick="toggleTheme()" title="Ganti Mode Terang / Gelap"
-                class="flex items-center justify-center w-8 h-8 rounded-xl bg-black/5 dark:bg-white/5 border border-line text-zinc-600 dark:text-zinc-300 hover:text-pink transition-all tap-press">
+                class="flex items-center justify-center w-8 h-8 rounded-xl ios-glass-pill border border-line text-main hover:text-pink transition-all tap-press">
           <i id="themeIcon" data-lucide="moon" class="w-4 h-4 text-pink"></i>
         </button>
       </div>
@@ -249,71 +576,107 @@
   </header>
 
   <!-- Container Konten Utama -->
-  <main class="relative z-10 flex-1 w-full max-w-4xl mx-auto px-4 pt-4 pb-20 space-y-5">
+  <main class="relative z-10 flex-1 w-full max-w-5xl mx-auto px-4 pt-4 pb-24 space-y-5">
 
-    <!-- Upload Card Form dengan Efek Glow & Liquid Glass -->
-    <section class="glow-capture rounded-3xl">
+    <!-- Upload Card Form dengan Drag & Drop + Multi-File Queue -->
+    <section id="uploadSection" class="glow-capture rounded-3xl transition-all">
       <div class="glowing-effect" data-glow><div class="glow"></div></div>
-      <div class="relative liquid-glass rounded-3xl p-5 sm:p-6 bg-panel/85 border border-line shadow-2xl space-y-4">
+      <div class="relative liquid-glass rounded-[28px] p-5 sm:p-6 space-y-4">
         
-        <div class="flex items-center justify-between pb-1 border-b border-line/50">
-          <h2 class="font-display font-bold text-base sm:text-lg text-white flex items-center gap-2">
+        <div class="flex items-center justify-between pb-2 border-b border-line/60">
+          <h2 class="font-display font-bold text-base sm:text-lg text-title flex items-center gap-2">
             <i data-lucide="upload-cloud" class="w-5 h-5 text-pink"></i>
             <span>Tambah Katalog Foto Baru</span>
           </h2>
-          <span class="text-[10px] font-mono text-soft uppercase tracking-wider">Multi-Upload Ready</span>
+          <span class="px-2 py-0.5 rounded-md bg-leaf/15 border border-leaf/30 text-[10px] font-mono text-leaf uppercase tracking-wider">
+            Ukuran & Rasio Asli
+          </span>
         </div>
 
         <form id="uploadForm" class="space-y-3.5">
-          <div>
-            <label class="block text-[11px] font-mono uppercase tracking-wider text-soft mb-1.5">Judul Katalog (Harus Unik)</label>
-            <div class="relative">
-              <input type="text" id="judul" required placeholder="Ketik nama judul unik..."
-                     class="w-full bg-ink/90 border border-line rounded-2xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-soft/40 outline-none focus:border-pink transition-all font-body" />
-              <i data-lucide="type" class="w-4 h-4 text-soft absolute left-3.5 top-3"></i>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-[11px] font-mono uppercase tracking-wider text-soft mb-1.5">Judul Katalog (Harus Unik)</label>
+              <div class="relative">
+                <input type="text" id="judul" required placeholder="Ketik nama judul unik..."
+                       class="w-full themed-input border border-line rounded-2xl pl-10 pr-4 py-2.5 text-sm placeholder:text-soft/40 outline-none focus:border-pink transition-all font-body" />
+                <i data-lucide="type" class="w-4 h-4 text-soft absolute left-3.5 top-3"></i>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-mono uppercase tracking-wider text-soft mb-1.5">Deskripsi</label>
+              <div class="relative">
+                <input type="text" id="deskripsi" required placeholder="Keterangan detail katalog..."
+                       class="w-full themed-input border border-line rounded-2xl pl-10 pr-4 py-2.5 text-sm placeholder:text-soft/40 outline-none focus:border-pink transition-all font-body" />
+                <i data-lucide="file-text" class="w-4 h-4 text-soft absolute left-3.5 top-3"></i>
+              </div>
             </div>
           </div>
 
+          <!-- Drag & Drop Multi-Photo Zone -->
           <div>
-            <label class="block text-[11px] font-mono uppercase tracking-wider text-soft mb-1.5">Deskripsi</label>
-            <div class="relative">
-              <textarea id="deskripsi" rows="2" required placeholder="Tuliskan keterangan detail tentang foto ini..."
-                        class="w-full bg-ink/90 border border-line rounded-2xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-soft/40 outline-none focus:border-pink transition-all resize-none font-body"></textarea>
-              <i data-lucide="file-text" class="w-4 h-4 text-soft absolute left-3.5 top-3"></i>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-[11px] font-mono uppercase tracking-wider text-soft">
+                Pilih Foto Katalog <span class="text-gold font-normal">(Bisa tambah berkali-kali • Resolusi Asli Dipertahankan)</span>
+              </label>
+              <button type="button" id="btnClearUploadQueue" onclick="clearCreateFiles()" class="hidden text-[11px] font-mono text-red-400 hover:underline">
+                Hapus Semua Antrean
+              </button>
             </div>
-          </div>
 
-          <div>
-            <label class="block text-[11px] font-mono uppercase tracking-wider text-soft mb-1.5">
-              Pilih Foto <span class="text-gold font-normal">(Bisa banyak foto sekaligus • Auto compress > 5 MB)</span>
-            </label>
-            <div class="relative">
-              <input type="file" id="fotoFiles" accept="image/*" multiple required
-                     class="w-full bg-ink/90 border border-line rounded-2xl pl-10 pr-4 py-2.5 text-xs text-soft file:mr-3 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-pink hover:file:text-ink cursor-pointer outline-none focus:border-pink transition-all" />
-              <i data-lucide="image-plus" class="w-4 h-4 text-soft absolute left-3.5 top-3"></i>
+            <div id="createDropZone"
+                 onclick="document.getElementById('fotoFiles').click()"
+                 class="border-2 border-dashed border-line hover:border-pink/70 rounded-2xl p-5 text-center cursor-pointer transition-all themed-input/60 group">
+              <input type="file" id="fotoFiles" accept="image/*" multiple class="hidden" />
+              <div class="w-10 h-10 rounded-2xl bg-pink/10 border border-pink/20 flex items-center justify-center mx-auto mb-2 text-pink group-hover:scale-105 transition-transform">
+                <i data-lucide="images" class="w-5 h-5"></i>
+              </div>
+              <p class="text-xs sm:text-sm font-semibold text-title">Klik atau seret banyak foto ke sini</p>
+              <p class="text-[11px] text-soft font-mono mt-0.5">Mendukung multi-foto per katalog • Klik lagi untuk menambah foto tambahan</p>
             </div>
+
+            <!-- Preview Grid Antrean Upload -->
+            <div id="createPreviewGrid" class="hidden grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-2.5 mt-3"></div>
           </div>
 
           <div id="uploadStatus" class="hidden text-xs p-3 rounded-2xl border font-mono"></div>
 
           <button type="submit" id="btnUpload"
                   class="w-full py-3.5 px-4 rounded-2xl font-display font-bold text-sm text-ink bg-gradient-to-r from-pink via-gold to-leaf hover:opacity-95 transition-all tap-press shadow-xl flex items-center justify-center gap-2">
-            <span>Upload ke Cloud Storage</span>
+            <span>Upload Katalog ke Cloud Storage</span>
             <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
           </button>
         </form>
       </div>
     </section>
 
-    <!-- Search Bar & Toolbar -->
-    <div class="space-y-2">
-      <div class="relative flex items-center">
+    <!-- Search Bar, Sort & View Controls -->
+    <div class="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+      <div class="relative flex-1 flex items-center">
         <i data-lucide="search" class="w-4 h-4 text-soft absolute left-4 pointer-events-none"></i>
         <input type="text" id="searchInput" autocomplete="off"
                placeholder="Cari parsial judul atau deskripsi katalog... 🔍"
-               class="w-full liquid-glass bg-panel/80 border border-line rounded-2xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-soft/40 outline-none focus:border-pink transition-all shadow-sm" />
-        <button type="button" id="btnClearSearch" onclick="resetSearch()" class="hidden absolute right-3 p-1.5 text-soft hover:text-white rounded-lg tap-press">
+               class="w-full liquid-glass border border-line rounded-2xl pl-11 pr-11 py-3 text-sm text-title placeholder:text-soft/40 outline-none focus:border-pink transition-all shadow-sm" />
+        <button type="button" id="btnClearSearch" onclick="resetSearch()" class="hidden absolute right-3 p-1.5 text-soft hover:text-title rounded-lg tap-press">
           <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <select id="sortSelect" onchange="applyFilterAndSort()"
+                class="liquid-glass border border-line rounded-2xl px-3.5 py-3 text-xs font-mono text-title outline-none focus:border-pink cursor-pointer">
+          <option value="newest">Terbaru</option>
+          <option value="oldest">Terlama</option>
+          <option value="az">Judul A-Z</option>
+          <option value="za">Judul Z-A</option>
+          <option value="most_photos">Foto Terbanyak</option>
+        </select>
+
+        <button onclick="fetchPhotos()" title="Muat Ulang Data"
+                class="liquid-glass border border-line rounded-2xl px-3.5 py-3 text-xs font-mono text-soft hover:text-title flex items-center gap-1.5 tap-press">
+          <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Refresh</span>
         </button>
       </div>
     </div>
@@ -323,15 +686,11 @@
       <div class="flex items-center justify-between mb-3 px-1">
         <span class="text-xs font-mono uppercase tracking-wider text-soft flex items-center gap-1.5">
           <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-gold"></i>
-          <span>Daftar Katalog Galeri</span>
+          <span id="gallerySubtitle">Daftar Katalog Galeri (Rasio & Ukuran Asli)</span>
         </span>
-        <button onclick="fetchPhotos()" class="text-xs font-mono text-soft hover:text-white flex items-center gap-1 tap-press">
-          <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
-          <span>Refresh</span>
-        </button>
       </div>
 
-      <div id="galleryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div id="galleryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
         <!-- Card dimuat oleh JS -->
         <div class="col-span-full py-16 text-center text-soft text-xs font-mono space-y-2">
           <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto opacity-40"></i>
@@ -342,9 +701,9 @@
 
   </main>
 
-  <!-- Modal Edit Katalog (Gaya Glass Popup) -->
+  <!-- Modal Edit Katalog & Tambah Foto ke Katalog -->
   <div id="editModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="liquid-glass rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 bg-panel/95 border-t sm:border border-line w-full max-w-lg shadow-2xl relative space-y-4">
+    <div class="liquid-glass-elevated rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 w-full max-w-lg max-h-[92vh] overflow-y-auto relative space-y-4">
       <div class="w-12 h-1 bg-white/20 rounded-full mx-auto -mt-1 sm:hidden"></div>
 
       <div class="flex items-center justify-between pb-2 border-b border-line">
@@ -353,64 +712,143 @@
             <i data-lucide="pencil" class="w-4 h-4"></i>
           </div>
           <div>
-            <h3 class="font-display font-bold text-sm text-white">Edit Katalog & Re-upload</h3>
-            <p class="text-[10px] font-mono text-soft">Perbarui informasi atau ganti set foto</p>
+            <h3 class="font-display font-bold text-sm text-title">Edit Katalog & Kelola Foto</h3>
+            <p class="text-[10px] font-mono text-soft">Ubah info, tambah foto, atau ganti set foto</p>
           </div>
         </div>
-        <button onclick="closeEditModal()" class="p-1.5 rounded-lg text-soft hover:text-white tap-press">
+        <button onclick="closeEditModal()" class="p-1.5 rounded-lg text-soft hover:text-title tap-press">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <form id="editForm" class="space-y-3">
+      <form id="editForm" class="space-y-3.5">
         <input type="hidden" id="editId">
 
         <div>
           <label class="block text-[10px] font-mono uppercase text-soft mb-1">Judul Katalog</label>
           <input type="text" id="editJudul" required
-                 class="w-full bg-ink/90 border border-line rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-gold" />
+                 class="w-full themed-input border border-line rounded-xl px-3.5 py-2 text-xs outline-none focus:border-gold" />
         </div>
 
         <div>
           <label class="block text-[10px] font-mono uppercase text-soft mb-1">Deskripsi</label>
           <textarea id="editDeskripsi" rows="2" required
-                    class="w-full bg-ink/90 border border-line rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-gold resize-none"></textarea>
+                    class="w-full themed-input border border-line rounded-xl px-3.5 py-2 text-xs outline-none focus:border-gold resize-none"></textarea>
         </div>
 
+        <!-- Foto Saat Ini di Katalog -->
         <div>
-          <label class="block text-[10px] font-mono uppercase text-soft mb-1">
-            Upload Ulang Foto <span class="text-soft font-normal">(Opsional, kosongkan jika tetap foto lama)</span>
-          </label>
-          <input type="file" id="editFiles" accept="image/*" multiple
-                 class="w-full bg-ink/90 border border-line rounded-xl px-3 py-1.5 text-xs text-soft file:mr-2 file:py-0.5 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:bg-white/10 file:text-white cursor-pointer" />
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-[10px] font-mono uppercase text-soft">Foto Tersimpan Saat Ini (<span id="editExistingCount">0</span>)</label>
+            <button type="button" onclick="downloadCatalogZip(document.getElementById('editId').value)"
+                    class="text-[10px] font-mono text-leaf hover:underline flex items-center gap-1">
+              <i data-lucide="folder-down" class="w-3 h-3"></i>
+              <span>Download ZIP Katalog Ini</span>
+            </button>
+          </div>
+          <div id="editExistingPhotos" class="flex gap-2 overflow-x-auto pb-2 no-scrollbar"></div>
+        </div>
+
+        <!-- Tambah / Upload Ulang Foto -->
+        <div class="space-y-2 pt-1 border-t border-line/60">
+          <div class="flex items-center justify-between">
+            <label class="block text-[10px] font-mono uppercase text-soft">Tambah / Upload Foto Baru</label>
+            <select id="editPhotoMode" class="themed-input border border-line rounded-lg px-2 py-1 text-[10px] font-mono text-gold outline-none">
+              <option value="append">Gabungkan dengan Foto Lama (Tambah)</option>
+              <option value="replace">Ganti Semua Foto Lama (Timpa)</option>
+            </select>
+          </div>
+
+          <div onclick="document.getElementById('editFiles').click()"
+               class="border border-dashed border-line hover:border-gold rounded-xl p-3.5 text-center cursor-pointer transition-all themed-input/60">
+            <input type="file" id="editFiles" accept="image/*" multiple class="hidden" />
+            <p class="text-xs font-medium text-title flex items-center justify-center gap-1.5">
+              <i data-lucide="image-plus" class="w-4 h-4 text-gold"></i>
+              <span>Pilih Banyak Foto untuk Ditambahkan</span>
+            </p>
+            <p class="text-[10px] font-mono text-soft mt-0.5">Ukuran & dimensi asli tetap terjaga</p>
+          </div>
+
+          <div id="editPreviewGrid" class="hidden grid grid-cols-4 gap-2 mt-2"></div>
         </div>
 
         <div id="editStatus" class="hidden text-xs p-2.5 rounded-xl border font-mono"></div>
 
-        <div class="pt-2 border-t border-line flex items-center justify-end gap-2">
-          <button type="button" onclick="closeEditModal()"
-                  class="py-2.5 px-4 rounded-xl text-xs font-mono text-soft hover:text-white bg-white/5 tap-press">
-            Batal
+        <div class="pt-2 border-t border-line flex items-center justify-between gap-2">
+          <button type="button" onclick="confirmDeleteCatalog(document.getElementById('editId').value)"
+                  class="py-2.5 px-3.5 rounded-xl text-xs font-mono text-red-400 hover:bg-red-500/15 border border-red-500/30 flex items-center gap-1.5 tap-press">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            <span>Hapus Katalog</span>
           </button>
-          <button type="submit" id="btnSaveEdit"
-                  class="py-2.5 px-5 rounded-xl font-display font-semibold text-xs text-ink bg-gold hover:bg-amber-400 transition-colors flex items-center gap-1.5 tap-press shadow-md">
-            <i data-lucide="save" class="w-3.5 h-3.5"></i>
-            <span>Simpan Perubahan</span>
-          </button>
+
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="closeEditModal()"
+                    class="py-2.5 px-4 rounded-xl text-xs font-mono text-soft hover:text-title ios-glass-pill tap-press">
+              Batal
+            </button>
+            <button type="submit" id="btnSaveEdit"
+                    class="py-2.5 px-5 rounded-xl font-display font-semibold text-xs text-ink bg-gold hover:bg-amber-400 transition-colors flex items-center gap-1.5 tap-press shadow-md">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i>
+              <span>Simpan</span>
+            </button>
+          </div>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal Lightbox (Lihat Gambar Fullscreen) -->
+  <!-- Modal Lightbox Fullscreen dengan Navigasi Slide & Opsi Download -->
   <div id="lightboxModal" onclick="closeLightbox(event)"
-       class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
-    <button class="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 tap-press" onclick="closeLightbox(event)">
-      <i data-lucide="x" class="w-6 h-6"></i>
-    </button>
-    <img id="lightboxImage" src="" alt="Full preview"
-         class="max-w-[92vw] max-h-[80vh] rounded-2xl object-contain shadow-2xl border border-white/10 transition-transform duration-300" />
-    <div id="lightboxTitle" class="text-white text-xs font-mono font-medium mt-3 text-center px-4 py-1.5 rounded-full bg-black/50 border border-white/10 backdrop-blur-md"></div>
+       class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-4 select-none">
+    
+    <!-- Top Bar Lightbox -->
+    <div class="w-full max-w-5xl flex items-center justify-between gap-2 z-10" onclick="event.stopPropagation()">
+      <div class="min-w-0">
+        <h4 id="lightboxTitle" class="text-white text-xs sm:text-sm font-display font-bold truncate"></h4>
+        <p id="lightboxMeta" class="text-[11px] font-mono text-zinc-400"></p>
+      </div>
+
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <!-- Download 1 Foto Ini -->
+        <button id="btnLbDownloadSingle" onclick="downloadCurrentLightboxPhoto()"
+                class="py-2 px-3 rounded-xl bg-pink text-ink hover:opacity-90 text-xs font-mono font-bold flex items-center gap-1.5 tap-press shadow-lg">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span>Download Foto Ini</span>
+        </button>
+
+        <!-- Download 1 Katalog Full (ZIP) -->
+        <button id="btnLbDownloadCatalog" onclick="downloadCurrentLightboxCatalog()"
+                class="py-2 px-3 rounded-xl bg-leaf text-white hover:opacity-90 text-xs font-mono font-bold flex items-center gap-1.5 tap-press shadow-lg">
+          <i data-lucide="folder-down" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Download 1 Katalog (ZIP)</span>
+          <span class="sm:hidden">1 Katalog</span>
+        </button>
+
+        <button class="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 tap-press" onclick="forceCloseLightbox()">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Center Image + Prev/Next Buttons -->
+    <div class="relative flex-1 w-full flex items-center justify-center my-2 overflow-hidden">
+      <button id="btnLbPrev" onclick="stepLightbox(-1, event)"
+              class="absolute left-1 sm:left-4 z-10 p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/25 text-white backdrop-blur-md border border-white/15 tap-press">
+        <i data-lucide="chevron-left" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+      </button>
+
+      <img id="lightboxImage" src="" alt="Full preview" onclick="event.stopPropagation()"
+           class="max-w-[92vw] max-h-[74vh] w-auto h-auto rounded-xl object-contain shadow-2xl border border-white/10 transition-all duration-200" />
+
+      <button id="btnLbNext" onclick="stepLightbox(1, event)"
+              class="absolute right-1 sm:right-4 z-10 p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/25 text-white backdrop-blur-md border border-white/15 tap-press">
+        <i data-lucide="chevron-right" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+      </button>
+    </div>
+
+    <!-- Bottom Thumbnail Strip -->
+    <div id="lightboxThumbs" onclick="event.stopPropagation()"
+         class="flex items-center gap-2 max-w-full overflow-x-auto py-1.5 px-2 no-scrollbar"></div>
   </div>
 
   <script>
@@ -419,9 +857,215 @@
 
     let photosData = [];
     let currentTheme = 'dark';
+    let createFilesQueue = [];
+    let editFilesQueue = [];
+    let activeSlideIndexMap = {}; // Menyimpan posisi slide foto aktif per katalog ID
+
+    // State Lightbox
+    let lbState = {
+      catalogId: null,
+      photoIndex: 0
+    };
 
     /* =====================================================================
-       HAPTIC & THEME INITIALIZER
+       iOS 27 LIQUID GLASS PIN LOCK SYSTEM
+       ===================================================================== */
+    const DEFAULT_PIN = "123456";
+    let pinBuffer = "";
+    let pinStepMode = "unlock"; // 'unlock' | 'verify_old' | 'set_new' | 'confirm_new'
+    let tempNewPin = "";
+    let isGalleryUnlocked = false;
+
+    function getStoredPin() {
+      return localStorage.getItem("galeriCloudPin") || DEFAULT_PIN;
+    }
+
+    function initPinLock() {
+      const hasCustomPin = Boolean(localStorage.getItem("galeriCloudPin"));
+      const hint = document.getElementById("pinDefaultHint");
+      if (hasCustomPin && hint) {
+        hint.innerHTML = `PIN Kustom Aktif • Mendukung input keyboard angka`;
+      }
+
+      if (sessionStorage.getItem("galeriUnlockedSession") === "1") {
+        unlockGallery(true);
+      } else {
+        lockGallery(true);
+      }
+    }
+
+    function updatePinDotsUI() {
+      const dots = document.querySelectorAll("#pinDotsRow .pin-dot");
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle("filled", idx < pinBuffer.length);
+      });
+    }
+
+    function pressPinDigit(digit) {
+      if (pinBuffer.length >= 6) return;
+      triggerHaptic(18);
+      pinBuffer += String(digit);
+      updatePinDotsUI();
+
+      if (pinBuffer.length === 6) {
+        setTimeout(evaluatePinBuffer, 140);
+      }
+    }
+
+    function deletePinDigit() {
+      if (pinBuffer.length === 0) return;
+      triggerHaptic(12);
+      pinBuffer = pinBuffer.slice(0, -1);
+      updatePinDotsUI();
+    }
+
+    function triggerPinError(msg) {
+      triggerHaptic(75);
+      const row = document.getElementById("pinDotsRow");
+      const sub = document.getElementById("pinScreenSubtitle");
+      sub.textContent = msg;
+      sub.classList.add("text-red-400");
+      row.classList.remove("pin-shake");
+      void row.offsetWidth;
+      row.classList.add("pin-shake");
+
+      setTimeout(() => {
+        pinBuffer = "";
+        updatePinDotsUI();
+        sub.classList.remove("text-red-400");
+      }, 480);
+    }
+
+    function togglePinSetupMode() {
+      triggerHaptic(20);
+      pinBuffer = "";
+      updatePinDotsUI();
+      const title = document.getElementById("pinScreenTitle");
+      const sub = document.getElementById("pinScreenSubtitle");
+      const lbl = document.getElementById("lblPinModeAction");
+
+      if (pinStepMode === "unlock") {
+        pinStepMode = "verify_old";
+        title.textContent = "Verifikasi PIN Lama";
+        sub.textContent = "Masukkan PIN saat ini sebelum mengganti";
+        lbl.textContent = "Batal";
+      } else {
+        pinStepMode = "unlock";
+        title.textContent = "Masukkan PIN Galeri";
+        sub.textContent = "Akses terkunci • Masukkan 6-digit PIN";
+        lbl.textContent = "Ubah PIN";
+      }
+    }
+
+    function evaluatePinBuffer() {
+      const currentSavedPin = getStoredPin();
+      const title = document.getElementById("pinScreenTitle");
+      const sub = document.getElementById("pinScreenSubtitle");
+      const lbl = document.getElementById("lblPinModeAction");
+
+      if (pinStepMode === "unlock") {
+        if (pinBuffer === currentSavedPin) {
+          unlockGallery(false);
+        } else {
+          triggerPinError("PIN salah! Silakan coba lagi");
+        }
+        return;
+      }
+
+      if (pinStepMode === "verify_old") {
+        if (pinBuffer === currentSavedPin) {
+          triggerHaptic(30);
+          pinBuffer = "";
+          updatePinDotsUI();
+          pinStepMode = "set_new";
+          title.textContent = "Buat PIN Baru";
+          sub.textContent = "Masukkan 6-digit PIN baru pilihanmu";
+        } else {
+          triggerPinError("PIN lama tidak cocok!");
+        }
+        return;
+      }
+
+      if (pinStepMode === "set_new") {
+        tempNewPin = pinBuffer;
+        pinBuffer = "";
+        updatePinDotsUI();
+        pinStepMode = "confirm_new";
+        title.textContent = "Konfirmasi PIN Baru";
+        sub.textContent = "Masukkan ulang 6-digit PIN baru";
+        return;
+      }
+
+      if (pinStepMode === "confirm_new") {
+        if (pinBuffer === tempNewPin) {
+          localStorage.setItem("galeriCloudPin", tempNewPin);
+          const hint = document.getElementById("pinDefaultHint");
+          if (hint) hint.innerHTML = `PIN Kustom Tersimpan • Mendukung input keyboard angka`;
+          showToast("PIN baru berhasil disimpan!", "success");
+          pinStepMode = "unlock";
+          lbl.textContent = "Ubah PIN";
+          unlockGallery(false);
+        } else {
+          pinStepMode = "set_new";
+          title.textContent = "Buat PIN Baru";
+          triggerPinError("Konfirmasi PIN tidak cocok, ulangi");
+        }
+      }
+    }
+
+    function unlockGallery(instant = false) {
+      triggerHaptic(45);
+      isGalleryUnlocked = true;
+      sessionStorage.setItem("galeriUnlockedSession", "1");
+      pinBuffer = "";
+      updatePinDotsUI();
+
+      const overlay = document.getElementById("pinLockOverlay");
+      const glyph = document.getElementById("pinLockGlyph");
+      if (glyph) {
+        glyph.setAttribute("data-lucide", "unlock");
+        lucide.createIcons();
+      }
+
+      if (instant) {
+        overlay.classList.add("hidden");
+      } else {
+        overlay.style.opacity = "0";
+        overlay.style.transform = "scale(1.04)";
+        overlay.style.pointerEvents = "none";
+        setTimeout(() => {
+          overlay.classList.add("hidden");
+          overlay.style.opacity = "";
+          overlay.style.transform = "";
+          overlay.style.pointerEvents = "";
+        }, 420);
+      }
+    }
+
+    function lockGallery(instant = false) {
+      if (!instant) triggerHaptic(25);
+      isGalleryUnlocked = false;
+      sessionStorage.removeItem("galeriUnlockedSession");
+      pinBuffer = "";
+      pinStepMode = "unlock";
+      updatePinDotsUI();
+
+      const overlay = document.getElementById("pinLockOverlay");
+      const glyph = document.getElementById("pinLockGlyph");
+      document.getElementById("pinScreenTitle").textContent = "Masukkan PIN Galeri";
+      document.getElementById("pinScreenSubtitle").textContent = "Akses terkunci • Masukkan 6-digit PIN";
+      document.getElementById("lblPinModeAction").textContent = "Ubah PIN";
+
+      if (glyph) {
+        glyph.setAttribute("data-lucide", "lock");
+        lucide.createIcons();
+      }
+      overlay.classList.remove("hidden");
+    }
+
+
+    /* =====================================================================
+       TOAST NOTIFICATION & HAPTIC
        ===================================================================== */
     function triggerHaptic(ms = 25) {
       if (navigator.vibrate) {
@@ -429,8 +1073,33 @@
       }
     }
 
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const colorStyles = {
+        success: 'border-leaf/50 bg-panel/95 text-leaf',
+        error: 'border-red-500/50 bg-panel/95 text-red-400',
+        info: 'border-pink/50 bg-panel/95 text-title'
+      };
+      const iconName = type === 'success' ? 'check-circle-2' : type === 'error' ? 'alert-circle' : 'info';
+
+      toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl border shadow-2xl backdrop-blur-xl text-xs font-mono transition-all duration-300 ${colorStyles[type] || colorStyles.info}`;
+      toast.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 flex-shrink-0"></i><span class="flex-1">${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    /* =====================================================================
+       THEME INITIALIZER & UPLOAD SECTION TOGGLE
+       ===================================================================== */
     function initTheme() {
-      const savedTheme = sessionStorage.getItem('galleryTheme') || 'dark';
+      const savedTheme = localStorage.getItem('galleryTheme') || 'dark';
       setTheme(savedTheme);
     }
 
@@ -448,9 +1117,10 @@
 
     function setTheme(theme) {
       currentTheme = theme;
-      sessionStorage.setItem('galleryTheme', theme);
+      localStorage.setItem('galleryTheme', theme);
       const html = document.documentElement;
       const themeIcon = document.getElementById('themeIcon');
+      const lockThemeIcon = document.getElementById('lockThemeIcon');
 
       if (theme === 'light') {
         html.classList.remove('dark');
@@ -459,6 +1129,10 @@
           themeIcon.setAttribute('data-lucide', 'sun');
           themeIcon.className = 'w-4 h-4 text-gold mode-icon-spin';
         }
+        if (lockThemeIcon) {
+          lockThemeIcon.setAttribute('data-lucide', 'sun');
+          lockThemeIcon.className = 'w-4 h-4 text-gold mode-icon-spin';
+        }
       } else {
         html.classList.remove('light');
         html.classList.add('dark');
@@ -466,8 +1140,18 @@
           themeIcon.setAttribute('data-lucide', 'moon');
           themeIcon.className = 'w-4 h-4 text-pink mode-icon-spin';
         }
+        if (lockThemeIcon) {
+          lockThemeIcon.setAttribute('data-lucide', 'moon');
+          lockThemeIcon.className = 'w-4 h-4 text-pink mode-icon-spin';
+        }
       }
       lucide.createIcons();
+    }
+
+    function toggleUploadSection() {
+      triggerHaptic(15);
+      const sec = document.getElementById('uploadSection');
+      sec.classList.toggle('hidden');
     }
 
     /* =====================================================================
@@ -537,11 +1221,153 @@
 
       document.body.addEventListener('pointermove', (e) => {
         items.forEach((item) => handleMove(item, e));
+
+        // Update iOS 27 Specular Sheen coordinates on hovered/nearby liquid-glass surfaces
+        const glassCards = document.querySelectorAll('.liquid-glass, .liquid-glass-elevated');
+        for (let i = 0; i < glassCards.length; i++) {
+          const rect = glassCards[i].getBoundingClientRect();
+          if (
+            e.clientX >= rect.left - 80 &&
+            e.clientX <= rect.right + 80 &&
+            e.clientY >= rect.top - 80 &&
+            e.clientY <= rect.bottom + 80
+          ) {
+            const relX = ((e.clientX - rect.left) / rect.width) * 100;
+            const relY = ((e.clientY - rect.top) / rect.height) * 100;
+            glassCards[i].style.setProperty('--mx', relX.toFixed(1) + '%');
+            glassCards[i].style.setProperty('--my', relY.toFixed(1) + '%');
+          }
+        }
       }, { passive: true });
     })();
 
     /* =====================================================================
-       DATA FETCHER & RENDERER
+       MULTI-FILE QUEUE & DRAG-AND-DROP (TANPA RESIZE / UKURAN ASLI)
+       ===================================================================== */
+    function setupFileQueueHandlers() {
+      const createInput = document.getElementById('fotoFiles');
+      const createZone = document.getElementById('createDropZone');
+      const editInput = document.getElementById('editFiles');
+
+      createInput.addEventListener('change', (e) => {
+        addFilesToCreateQueue(e.target.files);
+        createInput.value = '';
+      });
+
+      ['dragenter', 'dragover'].forEach(evt => {
+        createZone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          createZone.classList.add('border-pink', 'bg-pink/5');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(evt => {
+        createZone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          createZone.classList.remove('border-pink', 'bg-pink/5');
+        });
+      });
+
+      createZone.addEventListener('drop', (e) => {
+        if (e.dataTransfer?.files?.length) {
+          addFilesToCreateQueue(e.dataTransfer.files);
+        }
+      });
+
+      editInput.addEventListener('change', (e) => {
+        addFilesToEditQueue(e.target.files);
+        editInput.value = '';
+      });
+    }
+
+    function addFilesToCreateQueue(fileList) {
+      const validImages = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+      if (!validImages.length) return;
+      createFilesQueue.push(...validImages);
+      renderCreatePreview();
+      showToast(`${validImages.length} foto ditambahkan ke antrean upload`, 'info');
+    }
+
+    function removeCreateFileAt(index) {
+      createFilesQueue.splice(index, 1);
+      renderCreatePreview();
+    }
+
+    function clearCreateFiles() {
+      createFilesQueue = [];
+      renderCreatePreview();
+    }
+
+    function renderCreatePreview() {
+      const grid = document.getElementById('createPreviewGrid');
+      const clearBtn = document.getElementById('btnClearUploadQueue');
+      grid.innerHTML = '';
+
+      if (createFilesQueue.length === 0) {
+        grid.classList.add('hidden');
+        clearBtn.classList.add('hidden');
+        return;
+      }
+
+      grid.classList.remove('hidden');
+      clearBtn.classList.remove('hidden');
+
+      createFilesQueue.forEach((file, idx) => {
+        const url = URL.createObjectURL(file);
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        const box = document.createElement('div');
+        box.className = 'relative group rounded-xl overflow-hidden border border-line bg-ink aspect-square';
+        box.innerHTML = `
+          <img src="${url}" onload="URL.revokeObjectURL(this.src)" class="w-full h-full object-contain bg-black/40" />
+          <span class="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/75 text-[9px] font-mono text-white">${sizeMB}MB</span>
+          <button type="button" onclick="removeCreateFileAt(${idx})"
+                  class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center shadow hover:bg-red-600">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        `;
+        grid.appendChild(box);
+      });
+      lucide.createIcons();
+    }
+
+    function addFilesToEditQueue(fileList) {
+      const validImages = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+      if (!validImages.length) return;
+      editFilesQueue.push(...validImages);
+      renderEditPreview();
+    }
+
+    function removeEditFileAt(index) {
+      editFilesQueue.splice(index, 1);
+      renderEditPreview();
+    }
+
+    function renderEditPreview() {
+      const grid = document.getElementById('editPreviewGrid');
+      grid.innerHTML = '';
+      if (editFilesQueue.length === 0) {
+        grid.classList.add('hidden');
+        return;
+      }
+      grid.classList.remove('hidden');
+      editFilesQueue.forEach((file, idx) => {
+        const url = URL.createObjectURL(file);
+        const box = document.createElement('div');
+        box.className = 'relative rounded-lg overflow-hidden border border-gold/40 bg-ink aspect-square';
+        box.innerHTML = `
+          <img src="${url}" onload="URL.revokeObjectURL(this.src)" class="w-full h-full object-contain bg-black/40" />
+          <button type="button" onclick="removeEditFileAt(${idx})"
+                  class="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center">
+            <i data-lucide="x" class="w-2.5 h-2.5"></i>
+          </button>
+        `;
+        grid.appendChild(box);
+      });
+      lucide.createIcons();
+    }
+
+    /* =====================================================================
+       DATA FETCHER, SORTING & RENDERER (ORIGINAL ASPECT RATIO)
        ===================================================================== */
     async function fetchPhotos() {
       const grid = document.getElementById("galleryGrid");
@@ -560,13 +1386,37 @@
         if (result.status === "success") {
           photosData = result.data.reverse();
           document.getElementById('labelCounterHeader').innerText = `${photosData.length} Katalog`;
-          renderGallery(photosData);
+          applyFilterAndSort();
         } else {
-          grid.innerHTML = `<div class="col-span-full p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-mono text-center">Gagal memuat: ${result.message}</div>`;
+          grid.innerHTML = `<div class="col-span-full p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-mono text-center">Gagal memuat: ${result.message}</div>`;
         }
       } catch (err) {
-        grid.innerHTML = `<div class="col-span-full p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-mono text-center">Gagal terhubung ke Apps Script: ${err.message}</div>`;
+        grid.innerHTML = `<div class="col-span-full p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-mono text-center">Gagal terhubung ke Apps Script: ${err.message}</div>`;
       }
+    }
+
+    function applyFilterAndSort() {
+      const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
+      const sortMode = document.getElementById("sortSelect").value;
+      const tokens = keyword.split(/\s+/).filter(Boolean);
+
+      let list = photosData.filter(item => {
+        if (tokens.length === 0) return true;
+        const textTarget = `${item.judul || ''} ${item.deskripsi || ''}`.toLowerCase();
+        return tokens.every(token => textTarget.includes(token));
+      });
+
+      if (sortMode === 'oldest') {
+        list = [...list].reverse();
+      } else if (sortMode === 'az') {
+        list = [...list].sort((a, b) => (a.judul || '').localeCompare(b.judul || ''));
+      } else if (sortMode === 'za') {
+        list = [...list].sort((a, b) => (b.judul || '').localeCompare(a.judul || ''));
+      } else if (sortMode === 'most_photos') {
+        list = [...list].sort((a, b) => (b.imageUrls?.length || 0) - (a.imageUrls?.length || 0));
+      }
+
+      renderGallery(list);
     }
 
     function renderGallery(items) {
@@ -575,10 +1425,10 @@
 
       if (items.length === 0) {
         grid.innerHTML = `
-          <div class="col-span-full py-16 text-center rounded-3xl liquid-glass bg-panel/40 border border-line text-soft space-y-2">
+          <div class="col-span-full py-16 text-center rounded-3xl liquid-glass border border-line text-soft space-y-2">
             <i data-lucide="image-off" class="w-10 h-10 mx-auto opacity-30 text-pink"></i>
-            <p class="text-sm font-semibold text-white">Tidak ada foto ditemukan</p>
-            <p class="text-xs text-soft">Coba kata kunci lain atau upload foto baru di atas</p>
+            <p class="text-sm font-semibold text-title">Tidak ada katalog ditemukan</p>
+            <p class="text-xs text-soft">Coba kata kunci lain atau upload katalog baru di atas</p>
           </div>
         `;
         lucide.createIcons();
@@ -587,47 +1437,105 @@
 
       items.forEach(item => {
         const card = document.createElement("div");
-        card.className = "liquid-glass rounded-2xl bg-panel/75 border border-line overflow-hidden shadow-lg flex flex-col justify-between";
+        card.className = "liquid-glass rounded-2xl border border-line overflow-hidden shadow-lg flex flex-col justify-between transition-all hover:border-pink/40";
 
         const urls = item.imageUrls || [];
         const safeTitle = escapeHtml(item.judul);
+        if (activeSlideIndexMap[item.id] === undefined) activeSlideIndexMap[item.id] = 0;
 
+        // Gambar menggunakan aspect-ratio alami (w-full h-auto max-h-[420px] object-contain) tanpa terpotong!
         const imagesHtml = urls.map((url, idx) => `
-          <img src="${url}" alt="${safeTitle} - ${idx + 1}" loading="lazy"
-               onclick="openLightbox('${url}', '${safeTitle} (${idx + 1}/${urls.length})')"
-               class="flex-shrink-0 w-full h-48 object-cover snap-start cursor-zoom-in hover:opacity-95 transition-opacity" />
+          <div class="flex-shrink-0 w-full snap-start flex items-center justify-center bg-black/20 dark:bg-black/50">
+            <img src="${url}" alt="${safeTitle} - ${idx + 1}" loading="lazy"
+                 onclick="openLightbox('${item.id}', ${idx})"
+                 class="w-full h-auto max-h-[440px] object-contain cursor-zoom-in hover:opacity-95 transition-opacity" />
+          </div>
         `).join("");
 
-        const firstUrl = urls.length > 0 ? urls[0] : "";
+        const dotsHtml = urls.length > 1 ? `
+          <div class="flex items-center justify-center gap-1 py-2 bg-black/10 border-t border-line/40">
+            ${urls.map((_, idx) => `
+              <button type="button" onclick="scrollCardToSlide('${item.id}', ${idx})"
+                      id="dot-${item.id}-${idx}"
+                      class="h-1.5 rounded-full transition-all ${idx === 0 ? 'w-4 bg-pink' : 'w-1.5 bg-soft/40'}"></button>
+            `).join('')}
+          </div>
+        ` : '';
 
         card.innerHTML = `
           <div>
-            <div class="relative bg-ink">
-              <div class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory h-48 bg-black/40">
-                ${imagesHtml || '<div class="w-full h-48 flex items-center justify-center text-xs font-mono text-soft">Tidak ada gambar</div>'}
+            <!-- Media Container dengan Ukuran & Rasio Asli -->
+            <div class="relative bg-ink/40">
+              <div id="carousel-${item.id}"
+                   onscroll="handleCardCarouselScroll('${item.id}', ${urls.length})"
+                   class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory items-center">
+                ${imagesHtml || '<div class="w-full py-16 flex items-center justify-center text-xs font-mono text-soft">Tidak ada gambar</div>'}
               </div>
-              <span class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-ink/80 backdrop-blur-md border border-line text-[10px] font-mono text-white">
-                ${urls.length} Foto
+
+              <!-- Badge Jumlah Foto -->
+              <span id="counter-${item.id}" class="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full bg-black/75 backdrop-blur-md border border-white/15 text-[10px] font-mono text-white">
+                1 / ${urls.length} Foto
               </span>
+
+              <!-- Tombol Navigasi Cepat jika > 1 Foto -->
+              ${urls.length > 1 ? `
+                <button type="button" onclick="stepCardCarousel('${item.id}', -1, ${urls.length})"
+                        class="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm border border-white/15 tap-press">
+                  <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </button>
+                <button type="button" onclick="stepCardCarousel('${item.id}', 1, ${urls.length})"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm border border-white/15 tap-press">
+                  <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+              ` : ''}
             </div>
 
+            ${dotsHtml}
+
+            <!-- Info Judul & Deskripsi -->
             <div class="p-4 space-y-1.5">
-              <h3 class="font-display font-bold text-base text-white truncate">${safeTitle}</h3>
+              <div class="flex items-start justify-between gap-2">
+                <h3 class="font-display font-bold text-base text-title leading-snug">${safeTitle}</h3>
+                <button type="button" onclick="copyCatalogInfo('${item.id}')" title="Salin Judul & Deskripsi"
+                        class="p-1.5 rounded-lg ios-glass-pill text-soft hover:text-pink flex-shrink-0 tap-press">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
               <p class="text-xs text-soft line-clamp-3 leading-relaxed font-body">${escapeHtml(item.deskripsi)}</p>
             </div>
           </div>
 
-          <div class="p-4 pt-0 grid grid-cols-2 gap-2 border-t border-line/40 mt-3 pt-3">
-            <button onclick="openLightbox('${firstUrl}', '${safeTitle}')"
-                    class="py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-line text-xs font-mono font-semibold text-zinc-200 flex items-center justify-center gap-1.5 tap-press">
-              <i data-lucide="maximize-2" class="w-3.5 h-3.5 text-pink"></i>
-              <span>Perbesar</span>
-            </button>
-            <button onclick="openEditModal('${item.id}')"
-                    class="py-2 px-3 rounded-xl bg-gold/15 hover:bg-gold/25 border border-gold/30 text-xs font-mono font-semibold text-gold flex items-center justify-center gap-1.5 tap-press">
-              <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-              <span>Edit</span>
-            </button>
+          <!-- Action Toolbar: Download 1 Foto, Download 1 Katalog (ZIP), Perbesar, Edit -->
+          <div class="p-3.5 pt-3 border-t border-line/60 space-y-2">
+            <!-- Baris Download Khusus -->
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="downloadActiveCardPhoto('${item.id}')"
+                      title="Download 1 foto yang sedang tampil di slide ini"
+                      class="py-2 px-2.5 rounded-xl bg-pink/15 hover:bg-pink/25 border border-pink/30 text-[11px] font-mono font-semibold text-pink flex items-center justify-center gap-1.5 tap-press">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span>1 Foto Ini</span>
+              </button>
+              <button type="button" onclick="downloadCatalogZip('${item.id}')"
+                      title="Download seluruh foto dalam 1 katalog ini (ZIP)"
+                      class="py-2 px-2.5 rounded-xl bg-leaf/15 hover:bg-leaf/25 border border-leaf/30 text-[11px] font-mono font-semibold text-leaf flex items-center justify-center gap-1.5 tap-press">
+                <i data-lucide="folder-down" class="w-3.5 h-3.5"></i>
+                <span>1 Katalog (${urls.length})</span>
+              </button>
+            </div>
+
+            <!-- Baris View & Edit -->
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="openLightbox('${item.id}', activeSlideIndexMap['${item.id}'] || 0)"
+                      class="py-2 px-2.5 rounded-xl ios-glass-pill hover:opacity-80 border border-line text-[11px] font-mono font-semibold text-title flex items-center justify-center gap-1.5 tap-press">
+                <i data-lucide="maximize-2" class="w-3.5 h-3.5 text-sea"></i>
+                <span>Full HD</span>
+              </button>
+              <button type="button" onclick="openEditModal('${item.id}')"
+                      class="py-2 px-2.5 rounded-xl bg-gold/15 hover:bg-gold/25 border border-gold/30 text-[11px] font-mono font-semibold text-gold flex items-center justify-center gap-1.5 tap-press">
+                <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                <span>Edit / +Foto</span>
+              </button>
+            </div>
           </div>
         `;
         grid.appendChild(card);
@@ -635,112 +1543,218 @@
       lucide.createIcons();
     }
 
+    function handleCardCarouselScroll(id, total) {
+      const el = document.getElementById(`carousel-${id}`);
+      if (!el || !el.clientWidth) return;
+      const idx = Math.round(el.scrollLeft / el.clientWidth);
+      activeSlideIndexMap[id] = idx;
+
+      const counter = document.getElementById(`counter-${id}`);
+      if (counter) counter.textContent = `${idx + 1} / ${total} Foto`;
+
+      for (let i = 0; i < total; i++) {
+        const dot = document.getElementById(`dot-${id}-${i}`);
+        if (dot) {
+          dot.className = `h-1.5 rounded-full transition-all ${i === idx ? 'w-4 bg-pink' : 'w-1.5 bg-soft/40'}`;
+        }
+      }
+    }
+
+    function scrollCardToSlide(id, idx) {
+      const el = document.getElementById(`carousel-${id}`);
+      if (!el) return;
+      el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' });
+    }
+
+    function stepCardCarousel(id, delta, total) {
+      const current = activeSlideIndexMap[id] || 0;
+      const next = (current + delta + total) % total;
+      scrollCardToSlide(id, next);
+    }
+
     /* =====================================================================
-       PENCARIAN PARSIAL CERDAS (Case-insensitive)
+       FITUR DOWNLOAD: 1 FOTO SAJA ATAU 1 KATALOG FULL (ZIP)
+       ===================================================================== */
+    function extractDriveFileId(url) {
+      const matchId = url.match(/[?&]id=([^&]+)/) || url.match(/\/d\/([^/]+)/);
+      return matchId ? matchId[1] : null;
+    }
+
+    function getDownloadableUrl(url) {
+      const fileId = extractDriveFileId(url);
+      // Endpoint lh3.googleusercontent.com/d/{id}=s0 mengembalikan ukuran & dimensi asli tanpa kompresi
+      if (fileId) {
+        return `https://lh3.googleusercontent.com/d/${fileId}=s0`;
+      }
+      return url;
+    }
+
+    async function fetchImageBlob(url) {
+      const highResUrl = getDownloadableUrl(url);
+      try {
+        const res = await fetch(highResUrl, { mode: 'cors' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.blob();
+      } catch (e) {
+        // Fallback ke URL asli jika CORS memblokir
+        const fallbackRes = await fetch(url);
+        return await fallbackRes.blob();
+      }
+    }
+
+    function triggerBrowserDownload(blobOrUrl, filename) {
+      const a = document.createElement('a');
+      if (blobOrUrl instanceof Blob) {
+        const objUrl = URL.createObjectURL(blobOrUrl);
+        a.href = objUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(objUrl), 3000);
+      } else {
+        a.href = blobOrUrl;
+        a.target = '_blank';
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    }
+
+    function sanitizeFilename(name) {
+      return (name || 'katalog').replace(/[^a-z0-9_\-\s]/gi, '').trim().replace(/\s+/g, '_');
+    }
+
+    async function downloadSinglePhoto(url, title, index = 1) {
+      triggerHaptic(25);
+      const safeName = `${sanitizeFilename(title)}_foto_${index}.jpg`;
+      showToast(`Mengunduh ${safeName}...`, 'info');
+
+      try {
+        const blob = await fetchImageBlob(url);
+        triggerBrowserDownload(blob, safeName);
+        showToast(`Berhasil mengunduh ${safeName}`, 'success');
+      } catch (err) {
+        // Fallback buka tab unduhan langsung jika diblokir CORS browser
+        const fileId = extractDriveFileId(url);
+        const directDl = fileId ? `https://drive.google.com/uc?export=download&id=${fileId}` : url;
+        triggerBrowserDownload(directDl, safeName);
+        showToast('Membuka unduhan langsung dari Google Drive...', 'info');
+      }
+    }
+
+    function downloadActiveCardPhoto(catalogId) {
+      const item = photosData.find(p => p.id === catalogId);
+      if (!item || !item.imageUrls?.length) return;
+      const idx = activeSlideIndexMap[catalogId] || 0;
+      const url = item.imageUrls[idx] || item.imageUrls[0];
+      downloadSinglePhoto(url, item.judul, idx + 1);
+    }
+
+    async function downloadCatalogZip(catalogId) {
+      triggerHaptic(35);
+      const item = photosData.find(p => p.id === catalogId);
+      if (!item || !item.imageUrls?.length) return;
+
+      const urls = item.imageUrls;
+      if (urls.length === 1) {
+        // Jika hanya ada 1 foto dalam katalog, langsung download fotonya
+        return downloadSinglePhoto(urls[0], item.judul, 1);
+      }
+
+      if (typeof JSZip === 'undefined') {
+        showToast('Library ZIP belum siap, mengunduh satu per satu...', 'info');
+        urls.forEach((u, i) => setTimeout(() => downloadSinglePhoto(u, item.judul, i + 1), i * 600));
+        return;
+      }
+
+      const folderName = sanitizeFilename(item.judul);
+      showToast(`Menyiapkan ZIP katalog "${item.judul}" (${urls.length} foto)...`, 'info');
+
+      try {
+        const zip = new JSZip();
+        const folder = zip.folder(folderName);
+        let successCount = 0;
+
+        for (let i = 0; i < urls.length; i++) {
+          try {
+            const blob = await fetchImageBlob(urls[i]);
+            const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+            folder.file(`${folderName}_${i + 1}.${ext}`, blob);
+            successCount++;
+          } catch (err) {
+            console.warn(`Gagal mengambil foto ke-${i + 1} ke dalam ZIP:`, err);
+          }
+        }
+
+        if (successCount === 0) {
+          throw new Error('Browser memblokir pengambilan file lintas-domain (CORS).');
+        }
+
+        // Tambahkan file info deskripsi katalog di dalam ZIP
+        folder.file('info_katalog.txt', `Judul: ${item.judul}\nDeskripsi: ${item.deskripsi}\nJumlah Foto: ${urls.length}`);
+
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        triggerBrowserDownload(zipBlob, `${folderName}.zip`);
+        showToast(`Katalog "${item.judul}.zip" (${successCount} foto) berhasil diunduh!`, 'success');
+      } catch (err) {
+        showToast('Gagal membuat ZIP otomatis, beralih ke download berurutan...', 'error');
+        urls.forEach((u, i) => {
+          setTimeout(() => downloadSinglePhoto(u, item.judul, i + 1), i * 700);
+        });
+      }
+    }
+
+    function copyCatalogInfo(catalogId) {
+      const item = photosData.find(p => p.id === catalogId);
+      if (!item) return;
+      const text = `${item.judul}\n${item.deskripsi}`;
+      navigator.clipboard.writeText(text).then(() => {
+        triggerHaptic(20);
+        showToast('Judul & deskripsi disalin ke clipboard!', 'success');
+      });
+    }
+
+    /* =====================================================================
+       PENCARIAN PARSIAL CERDAS
        ===================================================================== */
     const searchInput = document.getElementById("searchInput");
     const btnClearSearch = document.getElementById("btnClearSearch");
 
     searchInput.addEventListener("input", function(e) {
-      const keyword = e.target.value.toLowerCase().trim();
-      btnClearSearch.classList.toggle('hidden', keyword.length === 0);
-
-      const tokens = keyword.split(/\s+/).filter(Boolean);
-
-      const filtered = photosData.filter(item => {
-        if (tokens.length === 0) return true;
-        const textTarget = `${item.judul || ''} ${item.deskripsi || ''}`.toLowerCase();
-        return tokens.every(token => textTarget.includes(token));
-      });
-
-      renderGallery(filtered);
+      btnClearSearch.classList.toggle('hidden', e.target.value.trim().length === 0);
+      applyFilterAndSort();
     });
 
     function resetSearch() {
       searchInput.value = "";
       btnClearSearch.classList.add('hidden');
-      renderGallery(photosData);
+      applyFilterAndSort();
       searchInput.focus();
     }
 
     /* =====================================================================
-       KOMPRESI GAMBAR CANVAS (> 5 MB)
+       KONVERSI BASE64 TANPA RESIZE / TANPA UBAH DIMENSI ASLI
        ===================================================================== */
-    async function compressImageIfNeeded(file) {
-      const MAX_SIZE = 5 * 1024 * 1024;
-      if (file.size <= MAX_SIZE) return file;
-
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-          const img = new Image();
-          img.src = event.target.result;
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-            const MAX_DIM = 1920;
-
-            if (width > MAX_DIM || height > MAX_DIM) {
-              if (width > height) {
-                height = Math.round((height * MAX_DIM) / width);
-                width = MAX_DIM;
-              } else {
-                width = Math.round((width * MAX_DIM) / height);
-                height = MAX_DIM;
-              }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-
-            let quality = 0.8;
-            function loopCompress(q) {
-              canvas.toBlob((blob) => {
-                if (!blob) return reject(new Error("Gagal kompresi."));
-                if (blob.size > MAX_SIZE && q > 0.3) {
-                  loopCompress(q - 0.15);
-                } else {
-                  resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
-                    type: "image/jpeg",
-                    lastModified: Date.now()
-                  }));
-                }
-              }, 'image/jpeg', q);
-            }
-            loopCompress(quality);
-          };
-          img.onerror = () => reject(new Error("Gagal membaca file gambar."));
-        };
-        reader.onerror = () => reject(new Error("Gagal memuat file gambar."));
-      });
-    }
-
-    function fileToBase64(file) {
+    function fileToBase64Original(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
+        reader.onerror = () => reject(new Error(`Gagal membaca ${file.name}`));
         reader.readAsDataURL(file);
       });
     }
 
-    async function prepareFilesPayload(fileList, statusElement) {
+    async function prepareOriginalFilesPayload(filesArray, statusElement) {
       const preparedFiles = [];
-      for (let i = 0; i < fileList.length; i++) {
-        let file = fileList[i];
-        if (file.size > 5 * 1024 * 1024) {
-          statusElement.textContent = `Mengompres foto ke-${i + 1} dari ${fileList.length}...`;
-          file = await compressImageIfNeeded(file);
-        }
-        statusElement.textContent = `Mengonversi foto ke-${i + 1} dari ${fileList.length}...`;
-        const base64Str = await fileToBase64(file);
+      for (let i = 0; i < filesArray.length; i++) {
+        const file = filesArray[i];
+        statusElement.textContent = `Memproses ukuran asli foto ke-${i + 1} dari ${filesArray.length} (${file.name})...`;
+        const base64Str = await fileToBase64Original(file);
         preparedFiles.push({
           fileName: file.name,
-          mimeType: file.type,
+          mimeType: file.type || 'image/jpeg',
           base64File: base64Str
         });
       }
@@ -748,7 +1762,7 @@
     }
 
     /* =====================================================================
-       SUBMIT UPLOAD (CREATE)
+       SUBMIT UPLOAD (CREATE MULTI-FOTO UKURAN ASLI)
        ===================================================================== */
     document.getElementById("uploadForm").addEventListener("submit", async function(e) {
       e.preventDefault();
@@ -757,27 +1771,28 @@
       const btn = document.getElementById("btnUpload");
       const statusMsg = document.getElementById("uploadStatus");
       const judul = document.getElementById("judul").value.trim();
-      const deskripsi = document.getElementById("deskripsi").value;
-      const files = document.getElementById("fotoFiles").files;
+      const deskripsi = document.getElementById("deskripsi").value.trim();
 
-      if (files.length === 0) return;
+      if (createFilesQueue.length === 0) {
+        showToast('Pilih minimal 1 foto terlebih dahulu!', 'error');
+        return;
+      }
 
-      // Cek judul duplikat lokal
       const isDuplicate = photosData.some(item => (item.judul || "").toLowerCase() === judul.toLowerCase());
       if (isDuplicate) {
-        statusMsg.className = "text-xs p-3 rounded-2xl border border-red-500/40 bg-red-500/10 text-red-300 block font-mono";
+        statusMsg.className = "text-xs p-3 rounded-2xl border border-red-500/40 bg-red-500/10 text-red-400 block font-mono";
         statusMsg.textContent = `Judul "${judul}" sudah terdaftar. Gunakan judul lain.`;
         return;
       }
 
       btn.disabled = true;
-      btn.innerHTML = `<span class="inline-block animate-spin mr-1">◌</span> Mengunggah...`;
-      statusMsg.className = "text-xs p-3 rounded-2xl border border-line bg-panel text-soft block font-mono";
+      btn.innerHTML = `<span class="inline-block animate-spin mr-1">◌</span> Mengunggah ${createFilesQueue.length} Foto Asli...`;
+      statusMsg.className = "text-xs p-3 rounded-2xl border border-line themed-input text-soft block font-mono";
 
       try {
-        const filePayloads = await prepareFilesPayload(files, statusMsg);
+        const filePayloads = await prepareOriginalFilesPayload(createFilesQueue, statusMsg);
 
-        statusMsg.textContent = "Menyimpan ke Google Drive & Spreadsheet...";
+        statusMsg.textContent = `Mengirim ${filePayloads.length} foto resolusi asli ke Google Drive & Sheets...`;
         const response = await fetch(SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify({
@@ -791,38 +1806,57 @@
         const resJson = await response.json();
         if (resJson.status === "success") {
           triggerHaptic(60);
-          statusMsg.className = "text-xs p-3 rounded-2xl border border-leaf/40 bg-leaf/10 text-emerald-300 block font-mono";
-          statusMsg.textContent = "Katalog baru berhasil ditambahkan!";
+          statusMsg.className = "text-xs p-3 rounded-2xl border border-leaf/40 bg-leaf/10 text-leaf block font-mono";
+          statusMsg.textContent = `Katalog "${judul}" (${filePayloads.length} foto ukuran asli) berhasil disimpan!`;
           document.getElementById("uploadForm").reset();
+          clearCreateFiles();
+          showToast('Katalog berhasil diunggah!', 'success');
           fetchPhotos();
         } else {
           throw new Error(resJson.message);
         }
       } catch (err) {
-        statusMsg.className = "text-xs p-3 rounded-2xl border border-red-500/40 bg-red-500/10 text-red-300 block font-mono";
+        statusMsg.className = "text-xs p-3 rounded-2xl border border-red-500/40 bg-red-500/10 text-red-400 block font-mono";
         statusMsg.textContent = "Gagal: " + err.message;
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<span>Upload ke Cloud Storage</span><i data-lucide="arrow-up-right" class="w-4 h-4"></i>`;
+        btn.innerHTML = `<span>Upload Katalog ke Cloud Storage</span><i data-lucide="arrow-up-right" class="w-4 h-4"></i>`;
         lucide.createIcons();
       }
     });
 
     /* =====================================================================
-       EDIT MODAL & UPDATE
+       EDIT MODAL: TAMBAH FOTO KE KATALOG / GANTI FOTO / HAPUS KATALOG
        ===================================================================== */
     function openEditModal(id) {
       triggerHaptic(20);
       const item = photosData.find(p => p.id === id);
       if (!item) return;
 
+      editFilesQueue = [];
+      renderEditPreview();
+
       document.getElementById("editId").value = item.id;
       document.getElementById("editJudul").value = item.judul;
       document.getElementById("editDeskripsi").value = item.deskripsi;
-      document.getElementById("editFiles").value = "";
       document.getElementById("editStatus").classList.add("hidden");
 
+      const urls = item.imageUrls || [];
+      document.getElementById("editExistingCount").textContent = urls.length;
+      const existingContainer = document.getElementById("editExistingPhotos");
+      existingContainer.innerHTML = urls.map((url, idx) => `
+        <div class="relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border border-line bg-black/40 group">
+          <img src="${url}" class="w-full h-full object-contain" />
+          <button type="button" onclick="downloadSinglePhoto('${url}', '${escapeHtml(item.judul)}', ${idx + 1})"
+                  title="Download foto ini"
+                  class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+            <i data-lucide="download" class="w-4 h-4"></i>
+          </button>
+        </div>
+      `).join('');
+
       document.getElementById("editModal").classList.remove("hidden");
+      lucide.createIcons();
     }
 
     function closeEditModal() {
@@ -837,24 +1871,24 @@
       const statusMsg = document.getElementById("editStatus");
       const id = document.getElementById("editId").value;
       const judul = document.getElementById("editJudul").value.trim();
-      const deskripsi = document.getElementById("editDeskripsi").value;
-      const files = document.getElementById("editFiles").files;
+      const deskripsi = document.getElementById("editDeskripsi").value.trim();
+      const photoMode = document.getElementById("editPhotoMode").value;
 
       const isDuplicate = photosData.some(item => item.id !== id && (item.judul || "").toLowerCase() === judul.toLowerCase());
       if (isDuplicate) {
-        statusMsg.className = "text-xs p-2.5 rounded-xl border border-red-500/40 bg-red-500/10 text-red-300 block font-mono";
+        statusMsg.className = "text-xs p-2.5 rounded-xl border border-red-500/40 bg-red-500/10 text-red-400 block font-mono";
         statusMsg.textContent = `Judul "${judul}" sudah dipakai katalog lain.`;
         return;
       }
 
       btn.disabled = true;
       btn.innerHTML = `<span class="inline-block animate-spin mr-1">◌</span> Menyimpan...`;
-      statusMsg.className = "text-xs p-2.5 rounded-xl border border-line bg-panel text-soft block font-mono";
+      statusMsg.className = "text-xs p-2.5 rounded-xl border border-line themed-input text-soft block font-mono";
 
       try {
         let filePayloads = [];
-        if (files.length > 0) {
-          filePayloads = await prepareFilesPayload(files, statusMsg);
+        if (editFilesQueue.length > 0) {
+          filePayloads = await prepareOriginalFilesPayload(editFilesQueue, statusMsg);
         }
 
         statusMsg.textContent = "Menyimpan pembaruan ke Google Drive & Sheets...";
@@ -865,6 +1899,7 @@
             id: id,
             judul: judul,
             deskripsi: deskripsi,
+            mode: photoMode, // 'append' atau 'replace' (backend Apps Script bisa membaca flag ini)
             files: filePayloads
           })
         });
@@ -873,44 +1908,160 @@
         if (resJson.status === "success") {
           triggerHaptic(50);
           closeEditModal();
+          showToast('Katalog berhasil diperbarui!', 'success');
           fetchPhotos();
         } else {
           throw new Error(resJson.message);
         }
       } catch (err) {
-        statusMsg.className = "text-xs p-2.5 rounded-xl border border-red-500/40 bg-red-500/10 text-red-300 block font-mono";
+        statusMsg.className = "text-xs p-2.5 rounded-xl border border-red-500/40 bg-red-500/10 text-red-400 block font-mono";
         statusMsg.textContent = "Gagal memperbarui: " + err.message;
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i data-lucide="save" class="w-3.5 h-3.5"></i><span>Simpan Perubahan</span>`;
+        btn.innerHTML = `<i data-lucide="save" class="w-3.5 h-3.5"></i><span>Simpan</span>`;
         lucide.createIcons();
       }
     });
 
-    /* =====================================================================
-       LIGHTBOX VIEWER
-       ===================================================================== */
-    function openLightbox(imageUrl, title) {
-      triggerHaptic(20);
-      const modal = document.getElementById("lightboxModal");
-      const img = document.getElementById("lightboxImage");
-      const caption = document.getElementById("lightboxTitle");
+    async function confirmDeleteCatalog(id) {
+      const item = photosData.find(p => p.id === id);
+      if (!item) return;
+      if (!confirm(`Yakin ingin menghapus katalog "${item.judul}" beserta seluruh fotonya?`)) return;
 
-      img.src = imageUrl;
-      caption.textContent = title || "";
-      modal.classList.remove("hidden");
-    }
+      const statusMsg = document.getElementById("editStatus");
+      statusMsg.className = "text-xs p-2.5 rounded-xl border border-line themed-input text-soft block font-mono";
+      statusMsg.textContent = "Menghapus katalog dari Google Sheets & Drive...";
 
-    function closeLightbox(e) {
-      if (e.target.id === "lightboxModal" || e.target.closest("button")) {
-        document.getElementById("lightboxModal").classList.add("hidden");
-        document.getElementById("lightboxImage").src = "";
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "delete",
+            id: id
+          })
+        });
+        const resJson = await response.json();
+        if (resJson.status === "success") {
+          triggerHaptic(60);
+          closeEditModal();
+          showToast(`Katalog "${item.judul}" dihapus.`, 'success');
+          fetchPhotos();
+        } else {
+          throw new Error(resJson.message || 'Backend Apps Script belum mendukung action delete');
+        }
+      } catch (err) {
+        statusMsg.className = "text-xs p-2.5 rounded-xl border border-red-500/40 bg-red-500/10 text-red-400 block font-mono";
+        statusMsg.textContent = "Gagal menghapus: " + err.message;
       }
     }
 
+    /* =====================================================================
+       LIGHTBOX VIEWER INTERAKTIF (MULTI-PHOTO + DOWNLOAD OPSI)
+       ===================================================================== */
+    function openLightbox(catalogId, photoIndex = 0) {
+      triggerHaptic(20);
+      const item = photosData.find(p => p.id === catalogId);
+      if (!item || !item.imageUrls?.length) return;
+
+      lbState.catalogId = catalogId;
+      lbState.photoIndex = photoIndex;
+      renderLightboxContent();
+      document.getElementById("lightboxModal").classList.remove("hidden");
+    }
+
+    function renderLightboxContent() {
+      const item = photosData.find(p => p.id === lbState.catalogId);
+      if (!item) return;
+
+      const urls = item.imageUrls || [];
+      const idx = lbState.photoIndex;
+      const currentUrl = urls[idx];
+
+      const img = document.getElementById("lightboxImage");
+      img.src = getDownloadableUrl(currentUrl);
+      img.onerror = () => { img.src = currentUrl; };
+
+      document.getElementById("lightboxTitle").textContent = item.judul;
+      document.getElementById("lightboxMeta").textContent = `Foto ${idx + 1} dari ${urls.length} • Ukuran & Rasio Asli`;
+
+      const hasMultiple = urls.length > 1;
+      document.getElementById("btnLbPrev").classList.toggle("hidden", !hasMultiple);
+      document.getElementById("btnLbNext").classList.toggle("hidden", !hasMultiple);
+
+      // Render thumbnail strip
+      const thumbs = document.getElementById("lightboxThumbs");
+      if (hasMultiple) {
+        thumbs.innerHTML = urls.map((u, i) => `
+          <button type="button" onclick="selectLightboxPhoto(${i})"
+                  class="w-12 h-12 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all ${i === idx ? 'border-pink scale-105' : 'border-white/20 opacity-60 hover:opacity-100'}">
+            <img src="${u}" class="w-full h-full object-cover" />
+          </button>
+        `).join('');
+      } else {
+        thumbs.innerHTML = '';
+      }
+
+      lucide.createIcons();
+    }
+
+    function selectLightboxPhoto(idx) {
+      lbState.photoIndex = idx;
+      renderLightboxContent();
+    }
+
+    function stepLightbox(delta, e) {
+      if (e) e.stopPropagation();
+      const item = photosData.find(p => p.id === lbState.catalogId);
+      if (!item || !item.imageUrls?.length) return;
+      const total = item.imageUrls.length;
+      lbState.photoIndex = (lbState.photoIndex + delta + total) % total;
+      renderLightboxContent();
+    }
+
+    function downloadCurrentLightboxPhoto() {
+      const item = photosData.find(p => p.id === lbState.catalogId);
+      if (!item) return;
+      const url = item.imageUrls[lbState.photoIndex];
+      downloadSinglePhoto(url, item.judul, lbState.photoIndex + 1);
+    }
+
+    function downloadCurrentLightboxCatalog() {
+      if (!lbState.catalogId) return;
+      downloadCatalogZip(lbState.catalogId);
+    }
+
+    function closeLightbox(e) {
+      if (e.target.id === "lightboxModal") {
+        forceCloseLightbox();
+      }
+    }
+
+    function forceCloseLightbox() {
+      document.getElementById("lightboxModal").classList.add("hidden");
+      document.getElementById("lightboxImage").src = "";
+    }
+
     document.addEventListener("keydown", function(e) {
+      const lockOpen = !document.getElementById("pinLockOverlay").classList.contains("hidden");
+      if (lockOpen) {
+        if (/^[0-9]$/.test(e.key)) {
+          e.preventDefault();
+          pressPinDigit(e.key);
+        } else if (e.key === "Backspace" || e.key === "Delete") {
+          e.preventDefault();
+          deletePinDigit();
+        }
+        return;
+      }
+
+      const lbOpen = !document.getElementById("lightboxModal").classList.contains("hidden");
+      if (lbOpen) {
+        if (e.key === "Escape") forceCloseLightbox();
+        if (e.key === "ArrowRight") stepLightbox(1);
+        if (e.key === "ArrowLeft") stepLightbox(-1);
+        return;
+      }
       if (e.key === "Escape") {
-        document.getElementById("lightboxModal").classList.add("hidden");
         closeEditModal();
       }
     });
@@ -924,6 +2075,8 @@
     // Init App
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
+      initPinLock();
+      setupFileQueueHandlers();
       fetchPhotos();
       lucide.createIcons();
     });
